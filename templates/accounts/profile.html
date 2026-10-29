@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Kisan Profile — FarmKart{% endblock %}
+
+{% block content %}
+
+<div style="max-width: 1000px; margin: 0 auto;">
+    <!-- Welcome Header Card -->
+    <div style="background: linear-gradient(135deg, #0d532b 0%, #16a34a 100%); color: white; border-radius: var(--radius-lg); padding: 35px 30px; margin-bottom: 25px; box-shadow: var(--shadow-md); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;">
+        <div>
+            <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase;">
+                🌾 Verified Farmer Member
+            </span>
+            <h1 style="font-size: 28px; color: white; margin: 8px 0 4px;">
+                Namaste, {{ user.first_name|default:user.username }}!
+            </h1>
+            <p style="font-size: 14px; color: #d1fae5;">
+                Member Username: <strong>{{ user.username }}</strong> · Email: {{ user.email|default:"Not specified" }}
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            {% if user.is_staff %}
+            <a href="{% url 'admin_dashboard' %}" class="btn" style="background: #ffffff; color: #166534; font-weight: 700; font-size: 13px;">⚙️ Admin Control Panel</a>
+            {% endif %}
+            <a href="{% url 'agri_calculator' %}" class="btn" style="background: #fef08a; color: #854d0e; font-weight: 700; font-size: 13px;">🧮 Crop Calculator</a>
+            <a href="{% url 'my_orders' %}" class="btn btn-accent" style="font-size: 13px;">View All Orders</a>
+            <a href="{% url 'logout' %}" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.4); font-size: 13px;">Logout</a>
+        </div>
+    </div>
+
+    <!-- Quick Stats Metric Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
+        <div style="background: white; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-sm); display:flex; align-items:center; gap:15px;">
+            <div style="width: 50px; height: 50px; border-radius: 12px; background: #dbeafe; color: #1e40af; display:flex; align-items:center; justify-content:center; font-size: 24px;">
+                📦
+            </div>
+            <div>
+                <div style="font-size: 12px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Orders Placed</div>
+                <div style="font-size: 24px; font-weight: 800; color: var(--text-main); font-family: 'Outfit', sans-serif;">{{ total_orders }}</div>
+            </div>
+        </div>
+
+        <div style="background: white; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-sm); display:flex; align-items:center; gap:15px;">
+            <div style="width: 50px; height: 50px; border-radius: 12px; background: #fee2e2; color: #b91c1c; display:flex; align-items:center; justify-content:center; font-size: 24px;">
+                🤍
+            </div>
+            <div>
+                <div style="font-size: 12px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Wishlist Items</div>
+                <div style="font-size: 24px; font-weight: 800; color: var(--text-main); font-family: 'Outfit', sans-serif;">{{ wishlist_count }}</div>
+            </div>
+        </div>
+
+        <div style="background: white; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-sm); display:flex; align-items:center; gap:15px;">
+            <div style="width: 50px; height: 50px; border-radius: 12px; background: #dcfce7; color: #166534; display:flex; align-items:center; justify-content:center; font-size: 24px;">
+                🚜
+            </div>
+            <div>
+                <div style="font-size: 12px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Doorstep Delivery</div>
+                <div style="font-size: 15px; font-weight: 700; color: #166534;">Free & Active</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Farmer Profile & Agricultural Preferences Card -->
+    <div style="background: white; border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 25px; margin-bottom: 30px;">
+        <h3 style="font-size: 18px; margin: 0 0 4px; color: #0f172a;">🌾 My Farming Details & Delivery Contact</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 20px;">Keep your contact number and crop profile updated for personalized advisory and doorstep delivery updates.</p>
+
+        <form method="post" action="{% url 'profile' %}">
+            {% csrf_token %}
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <label style="font-size: 12px; font-weight: 600; display:block; margin-bottom: 4px;">Full Name</label>
+                    <input type="text" name="first_name" value="{{ user.first_name }}" style="width:100%; padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+
+                <div>
+                    <label style="font-size: 12px; font-weight: 600; display:block; margin-bottom: 4px;">Mobile Phone (WhatsApp / SMS)</label>
+                    <input type="tel" name="phone" value="{{ profile.phone|default:'' }}" placeholder="10-digit mobile" style="width:100%; padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+
+                <div>
+                    <label style="font-size: 12px; font-weight: 600; display:block; margin-bottom: 4px;">Email Address</label>
+                    <input type="email" name="email" value="{{ user.email|default:'' }}" placeholder="your@email.com" style="width:100%; padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <div>
+                    <label style="font-size: 12px; font-weight: 600; display:block; margin-bottom: 4px;">State (राज्य)</label>
+                    <input type="text" name="state" value="{{ profile.state|default:'Maharashtra' }}" style="width:100%; padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+
+                <div>
+                    <label style="font-size: 12px; font-weight: 600; display:block; margin-bottom: 4px;">District / Tehsil (तहसील)</label>
+                    <input type="text" name="district" value="{{ profile.district|default:'' }}" placeholder="e.g. Pune" style="width:100%; padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+
+                <div>
+                    <label style="font-size: 12px; font-weight: 600; display:block; margin-bottom: 4px;">Primary Crop (प्रमुख फसल)</label>
+                    <input type="text" name="primary_crop" value="{{ profile.primary_crop|default:'Wheat' }}" style="width:100%; padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+
+                <div>
+                    <label style="font-size: 12px; font-weight: 600; display:block; margin-bottom: 4px;">Land Area (रकबा)</label>
+                    <input type="text" name="land_size" value="{{ profile.land_size|default:'2 - 5 Acres' }}" style="width:100%; padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-sm btn-primary" style="padding: 9px 20px; font-size: 13px;">
+                💾 Save Profile Changes
+            </button>
+        </form>
+    </div>
+
+    <!-- Recent Orders Section -->
+    <div style="background: white; border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 25px; margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="font-size: 18px; margin: 0;">Recent FarmKart Orders</h2>
+            <a href="{% url 'my_orders' %}" style="font-size: 13px; color: var(--primary); font-weight: 700;">View All Orders ➔</a>
+        </div>
+
+        {% if recent_orders %}
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for o in recent_orders %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f8fafc; border-radius: 6px; border: 1px solid var(--border); flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <strong style="font-size: 14px;">Order #{{ o.order_number }}</strong>
+                    <div style="font-size: 12px; color: var(--text-muted);">{{ o.created_at|date:"M d, Y" }} · {{ o.items.count }} items</div>
+                </div>
+                <div>
+                    <span class="order-status-badge {% if o.status == 'DELIVERED' %}status-delivered{% else %}status-confirmed{% endif %}">
+                        {{ o.get_status_display }}
+                    </span>
+                </div>
+                <div style="font-weight: 800; font-size: 15px; color: var(--primary);">
+                    ₹{{ o.total }}
+                </div>
+                <a href="{% url 'order_detail' o.id %}" class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;">
+                    Track
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 14px;">You have not placed any orders yet. <a href="{% url 'product_list' %}" style="color: var(--primary); font-weight:600;">Start shopping</a>.</p>
+        {% endif %}
+    </div>
+
+    <!-- Kisan Advisory & Support Assistance -->
+    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-md); padding: 25px;">
+        <h3 style="color: #166534; font-size: 16px; margin-bottom: 8px;">🌾 Need Farming Help or Crop Advice?</h3>
+        <p style="font-size: 14px; color: #334155; line-height: 1.6; margin-bottom: 15px;">
+            Our dedicated agricultural experts are available Monday to Saturday (8 AM to 8 PM) to answer your questions on soil testing, seed treatment, insect pest control, and government subsidy schemes.
+        </p>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <a href="tel:18001801551" class="btn btn-accent" style="font-size: 13px;">📞 Call 1800-180-1551</a>
+            <a href="https://wa.me/9118001801551" target="_blank" class="btn btn-outline" style="font-size: 13px; background: white;">💬 WhatsApp Krishi Mitra</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

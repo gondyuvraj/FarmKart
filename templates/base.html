@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FarmKart — India's Trusted Agricultural E-Commerce Store{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Buy certified seeds, organic fertilizers, crop protection insecticides, and modern farm tools directly on FarmKart with fast rural delivery.{% endblock %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+    <!-- 1. Top Kisan Announcement Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <span>{{ store_announcement.headline|default:"🌾 Kisan Call Center: 1800-180-1551 (Toll-Free 6 AM - 10 PM) · 🚜 Free Delivery on orders over ₹999" }}</span>
+        </div>
+        <div class="top-bar-right">
+            <span class="badge-live">{{ store_announcement.subline|default:"● 100% Certified Agri-Inputs · Government Subsidy Assistance Available" }}</span>
+        </div>
+    </div>
+
+    <!-- 2. Main Flipkart-Style Header -->
+    <header class="navbar-wrap">
+        <div class="navbar">
+            <!-- Brand Logo -->
+            <a href="{% url 'home' %}" class="brand-logo" id="siteLogo">
+                <div class="brand-name">🌾 Farm<span>Kart</span></div>
+                <div class="brand-tagline">Kisan Ki Apni Dukan · Bharat's Agri Store</div>
+            </a>
+
+            <!-- Flipkart-Style Search Bar -->
+            <div class="nav-search">
+                <form action="{% url 'product_list' %}" method="get" id="globalSearchForm">
+                    <input 
+                        type="text" 
+                        name="q" 
+                        placeholder="Search certified seeds, fertilizers, pesticides, sprayers (खोजें)..." 
+                        value="{{ q|default:'' }}"
+                        id="globalSearchInput"
+                        required
+                    >
+                    <button type="submit" id="searchSubmitBtn">🔍 Search</button>
+                </form>
+            </div>
+
+            <!-- Header Action Items -->
+            <div class="nav-actions">
+                <!-- Agri Calculator Tool -->
+                <a href="{% url 'agri_calculator' %}" class="nav-btn" title="Fertilizer & Crop Dosage Calculator" style="color: #fef08a;">
+                    <span>🧮 Agri Calculator</span>
+                </a>
+
+                <!-- Wishlist -->
+                <a href="{% url 'my_wishlist' %}" class="nav-btn" id="navWishlistBtn" title="My Wishlist">
+                    <span>🤍 Wishlist</span>
+                    {% if wishlist_count > 0 %}
+                    <span class="nav-badge">{{ wishlist_count }}</span>
+                    {% endif %}
+                </a>
+
+                <!-- Cart -->
+                <a href="{% url 'cart' %}" class="nav-btn" id="navCartBtn" title="Shopping Cart">
+                    <span>🛒 Cart</span>
+                    {% if cart_count > 0 %}
+                    <span class="nav-badge" id="cartBadge">{{ cart_count }}</span>
+                    {% endif %}
+                </a>
+
+                <!-- Admin Control Center Direct Link for Staff -->
+                {% if user.is_authenticated and user.is_staff %}
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-sm btn-accent" style="padding: 6px 14px; font-size: 13px; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 5px; color: white;" title="Access FarmKart Admin Control Center">
+                    ⚙️ Admin Panel
+                </a>
+                {% endif %}
+
+                <!-- User Account Dropdown -->
+                {% if user.is_authenticated %}
+                <div class="user-dropdown">
+                    <button class="nav-btn" id="userMenuBtn">
+                        <span>👤 {{ user.first_name|default:user.username }} ▾</span>
+                    </button>
+                    <div class="user-menu">
+                        <a href="{% url 'profile' %}">🚜 My Kisan Profile</a>
+                        <a href="{% url 'my_orders' %}">📦 My Orders</a>
+                        <a href="{% url 'my_wishlist' %}">🤍 My Wishlist</a>
+                        <a href="{% url 'agri_calculator' %}">🧮 Fertilizer Calculator</a>
+                        {% if user.is_staff %}
+                        <div class="user-menu-divider"></div>
+                        <strong style="padding: 6px 14px; font-size: 11px; text-transform: uppercase; color: #166534; display:block;">Admin Controls</strong>
+                        <a href="{% url 'admin_dashboard' %}">📊 Admin Control Center</a>
+                        <a href="{% url 'admin_products_list' %}">📦 Manage Products</a>
+                        <a href="{% url 'admin_orders_list' %}">🚚 Manage Orders</a>
+                        <a href="{% url 'admin_announcements' %}">📢 Store Announcements</a>
+                        <a href="/admin/" target="_blank">⚙️ Django Core Admin ↗</a>
+                        {% endif %}
+                        <div class="user-menu-divider"></div>
+                        <a href="{% url 'logout' %}" style="color: #dc2626;">🚪 Logout</a>
+                    </div>
+                </div>
+                {% else %}
+                <a href="{% url 'login' %}" class="login-btn-top" id="loginBtnTop">Login / साइन इन</a>
+                <a href="{% url 'register' %}" class="nav-btn" style="border: 1px solid rgba(255,255,255,0.4);" id="registerBtnTop">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- 3. Flipkart-Style Horizontal Category Rail -->
+    <nav class="category-rail" aria-label="Category Navigation">
+        <div class="category-rail-inner">
+            <a href="{% url 'product_list' %}" class="category-pill {% if not cat_id and request.resolver_match.url_name == 'product_list' %}active{% endif %}">
+                <span class="category-pill-icon">🌟</span>
+                <span>All Products (सभी उत्पाद)</span>
+            </a>
+            <a href="{% url 'agri_calculator' %}" class="category-pill {% if request.resolver_match.url_name == 'agri_calculator' %}active{% endif %}" style="background: #fefce8; border-color: #fef08a; color: #854d0e; font-weight: 700;">
+                <span class="category-pill-icon">🧮</span>
+                <span>Agri Fertilizer Calculator (खाद गणक)</span>
+            </a>
+            {% for c in categories_nav %}
+            <a href="{% url 'product_list' %}?category={{ c.id }}" class="category-pill {% if cat_id == c.id|stringformat:'s' %}active{% endif %}">
+                <span class="category-pill-icon">{{ c.icon }}</span>
+                <span>{{ c.name }}{% if c.hindi_name %} · {{ c.hindi_name }}{% endif %}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </nav>
+
+    <!-- 4. Flash Notifications Toast -->
+    {% if messages %}
+    <div class="flash-container">
+        {% for m in messages %}
+        <div class="alert {% if m.tags == 'error' %}alert-error{% elif m.tags == 'success' %}alert-success{% else %}alert-info{% endif %}">
+            <div>{{ m }}</div>
+            <button onclick="this.parentElement.remove()" style="background:none; border:none; font-size:16px; cursor:pointer; color:inherit;">✕</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- 5. Main Content -->
+    <main class="main-wrapper">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- 6. Floating WhatsApp Kisan Advisory Support Widget -->
+    <a href="https://wa.me/9118001801551?text=Namaste%20FarmKart%20Team%2C%20I%20need%20assistance%20with%20my%20crop%20inputs." 
+       target="_blank" 
+       class="kisan-floating-btn" 
+       id="kisanHelpWidget" 
+       title="Direct WhatsApp Farmer Advisory">
+        <span>💬 Kisan WhatsApp Help</span>
+    </a>
+
+    <!-- 7. Comprehensive Flipkart-Style Footer -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-col">
+                <h2 style="color:white; font-size:20px; margin-bottom:12px;">🌾 FarmKart</h2>
+                <p style="font-size:13px; line-height:1.6; margin-bottom:16px;">
+                    FarmKart is dedicated to transforming Indian agriculture by delivering authentic seeds, bio-fertilizers, and high-tech farming equipment straight to farmer doorsteps at fair mandi-linked prices.
+                </p>
+                <p style="font-size:13px; color:#a7f3d0;">
+                    📍 Head Office: Krishi Bhavan Road, Pune, Maharashtra 411001<br>
+                    📞 Farmer Helpline: 1800-180-1551 (Toll-Free)
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Agri Categories</h4>
+                <ul>
+                    <li><a href="{% url 'product_list' %}">Certified Seeds (बीज)</a></li>
+                    <li><a href="{% url 'product_list' %}">Bio & NPK Fertilizers (उर्वरक)</a></li>
+                    <li><a href="{% url 'product_list' %}">Crop Protection (कीटनाशक)</a></li>
+                    <li><a href="{% url 'product_list' %}">Battery Sprayers (स्प्रे पंप)</a></li>
+                    <li><a href="{% url 'product_list' %}">Drip Irrigation Kits (ड्रिप सिंचाई)</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Farmer Services</h4>
+                <ul>
+                    <li><a href="{% url 'my_orders' %}">Track My Order</a></li>
+                    <li><a href="{% url 'my_wishlist' %}">Saved Crop Inputs</a></li>
+                    <li><a href="{% url 'profile' %}">Kisan Credit & Profile</a></li>
+                    <li><a href="/api/products/">REST Developer API</a></li>
+                    <li><a href="/admin/">Seller / Admin Login</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Trusted By 50,000+ Kisans</h4>
+                <div style="background: rgba(255,255,255,0.06); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                    <p style="font-size: 13px; color: #facc15; font-weight: 700; margin-bottom: 6px;">
+                        ✓ 100% Original Products
+                    </p>
+                    <p style="font-size: 12px; margin-bottom: 8px;">
+                        All fertilizers and seeds dispatched with manufacturer warranty and batch test certificates.
+                    </p>
+                    <div style="display: flex; gap: 8px; font-size: 20px;">
+                        💳 📱 🚚 🛡️
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 FarmKart India Limited. Empowering Indian Kisans with Technology. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/script.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

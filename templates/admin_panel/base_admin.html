@@ -1,0 +1,415 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FarmKart Admin Control Center{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        :root {
+            --admin-sidebar-bg: #0f172a;
+            --admin-sidebar-hover: #1e293b;
+            --admin-sidebar-active: #16a34a;
+            --admin-header-bg: #ffffff;
+            --admin-body-bg: #f1f5f9;
+        }
+
+        body.admin-body {
+            background-color: var(--admin-body-bg);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #1e293b;
+        }
+
+        /* Sidebar Styles */
+        .admin-sidebar {
+            width: 260px;
+            background: var(--admin-sidebar-bg);
+            color: #e2e8f0;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.15);
+            overflow-y: auto;
+        }
+
+        .admin-brand {
+            padding: 22px 20px;
+            background: #09101d;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .admin-brand h2 {
+            font-size: 18px;
+            margin: 0;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-brand span.badge-admin {
+            background: #16a34a;
+            color: white;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .admin-nav {
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-grow: 1;
+        }
+
+        .admin-nav-section {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #64748b;
+            font-weight: 700;
+            padding: 12px 12px 6px;
+        }
+
+        .admin-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .admin-nav-item:hover {
+            background: var(--admin-sidebar-hover);
+            color: #ffffff;
+            transform: translateX(3px);
+        }
+
+        .admin-nav-item.active {
+            background: var(--admin-sidebar-active);
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(22, 163, 74, 0.35);
+        }
+
+        .admin-nav-item .icon {
+            font-size: 18px;
+            width: 22px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            background: #09101d;
+        }
+
+        /* Main Content Wrapper */
+        .admin-main-wrap {
+            margin-left: 260px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .admin-topbar {
+            height: 65px;
+            background: var(--admin-header-bg);
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .btn-view-store {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-view-store:hover {
+            background: #dcfce7;
+            border-color: #86efac;
+        }
+
+        .admin-content {
+            padding: 30px;
+            flex-grow: 1;
+        }
+
+        /* Common Admin Cards and Tables */
+        .admin-card {
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .admin-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .admin-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            background: white;
+            text-align: left;
+        }
+
+        .admin-table th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            text-transform: uppercase;
+            font-size: 11.5px;
+            letter-spacing: 0.5px;
+        }
+
+        .admin-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        .admin-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .admin-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Pill status badges */
+        .pill-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 700;
+        }
+
+        .pill-success { background: #dcfce7; color: #166534; }
+        .pill-warning { background: #fef3c7; color: #92400e; }
+        .pill-danger { background: #fee2e2; color: #991b1b; }
+        .pill-info { background: #e0f2fe; color: #075985; }
+        .pill-neutral { background: #f1f5f9; color: #475569; }
+
+        .btn-sm-action {
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+
+        .btn-edit { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+        .btn-edit:hover { background: #dbeafe; }
+        .btn-delete { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+        .btn-delete:hover { background: #fee2e2; }
+
+        @media (max-width: 900px) {
+            .admin-sidebar {
+                width: 70px;
+            }
+            .admin-sidebar .admin-nav-item span:not(.icon) {
+                display: none;
+            }
+            .admin-sidebar .admin-nav-section {
+                display: none;
+            }
+            .admin-brand h2 span:not(.icon) {
+                display: none;
+            }
+            .admin-brand span.badge-admin {
+                display: none;
+            }
+            .admin-main-wrap {
+                margin-left: 70px;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="admin-body">
+
+    <!-- 1. Left Navigation Sidebar -->
+    <aside class="admin-sidebar">
+        <div class="admin-brand">
+            <h2><span class="icon">🌾</span> <span>FarmKart</span></h2>
+            <span class="badge-admin">Admin</span>
+        </div>
+
+        <nav class="admin-nav">
+            <div class="admin-nav-section">Core Dashboard</div>
+            <a href="{% url 'admin_dashboard' %}" class="admin-nav-item {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                <span class="icon">📊</span>
+                <span>Dashboard Overview</span>
+            </a>
+
+            <div class="admin-nav-section">Catalog & Inventory</div>
+            <a href="{% url 'admin_products_list' %}" class="admin-nav-item {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="icon">📦</span>
+                <span>Manage Products</span>
+            </a>
+            <a href="{% url 'admin_product_add' %}" class="admin-nav-item {% if request.resolver_match.url_name == 'admin_product_add' %}active{% endif %}">
+                <span class="icon">➕</span>
+                <span>Add New Product</span>
+            </a>
+            <a href="{% url 'admin_categories_list' %}" class="admin-nav-item {% if request.resolver_match.url_name == 'admin_categories_list' %}active{% endif %}">
+                <span class="icon">🏷️</span>
+                <span>Categories</span>
+            </a>
+
+            <div class="admin-nav-section">Sales & Customers</div>
+            <a href="{% url 'admin_orders_list' %}" class="admin-nav-item {% if 'order' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="icon">🚚</span>
+                <span>Customer Orders</span>
+            </a>
+            <a href="{% url 'admin_customers_list' %}" class="admin-nav-item {% if request.resolver_match.url_name == 'admin_customers_list' %}active{% endif %}">
+                <span class="icon">👨‍🌾</span>
+                <span>Registered Farmers</span>
+            </a>
+            <a href="{% url 'admin_reviews_list' %}" class="admin-nav-item {% if request.resolver_match.url_name == 'admin_reviews_list' %}active{% endif %}">
+                <span class="icon">⭐</span>
+                <span>Customer Reviews</span>
+            </a>
+
+            <div class="admin-nav-section">Store Settings</div>
+            <a href="{% url 'admin_announcements' %}" class="admin-nav-item {% if request.resolver_match.url_name == 'admin_announcements' %}active{% endif %}">
+                <span class="icon">📢</span>
+                <span>Announcements & Ticker</span>
+            </a>
+            <a href="/admin/" target="_blank" class="admin-nav-item">
+                <span class="icon">⚙️</span>
+                <span>Django Core Admin ↗</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div style="font-size: 11px; color: #94a3b8; display:flex; justify-content:space-between; align-items:center;">
+                <span>Logged in: <strong>{{ user.username }}</strong></span>
+                <a href="{% url 'logout' %}" style="color: #ef4444; font-weight: 600; text-decoration:none;">Logout</a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 2. Main Page Content Wrap -->
+    <div class="admin-main-wrap">
+        <!-- Top Sticky Header -->
+        <header class="admin-topbar">
+            <div class="topbar-left">
+                <h3 style="margin: 0; font-size: 17px; color: #0f172a;">
+                    {% block page_title %}Admin Control Center{% endblock %}
+                </h3>
+            </div>
+
+            <div class="topbar-right">
+                <a href="{% url 'home' %}" class="btn-view-store" title="Go to customer-facing website">
+                    🌾 View Live Storefront ↗
+                </a>
+                <span style="font-size: 13px; color: #64748b;">
+                    👤 <strong>{{ user.first_name|default:user.username }}</strong> (Super Admin)
+                </span>
+            </div>
+        </header>
+
+        <!-- Flash Toast Messages -->
+        {% if messages %}
+        <div style="padding: 20px 30px 0;">
+            {% for m in messages %}
+            <div class="alert {% if m.tags == 'error' %}alert-error{% elif m.tags == 'success' %}alert-success{% else %}alert-info{% endif %}" style="margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center;">
+                <div>{{ m }}</div>
+                <button onclick="this.parentElement.remove()" style="background:none; border:none; font-size:16px; cursor:pointer; color:inherit;">✕</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Content Area -->
+        <main class="admin-content">
+            {% block admin_content %}{% endblock %}
+        </main>
+    </div>
+
+</body>
+</html>

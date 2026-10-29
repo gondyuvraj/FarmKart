@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Shopping Cart ({{ items|length }} Items) — FarmKart{% endblock %}
+
+{% block content %}
+
+{% if items %}
+<div class="cart-layout">
+    <!-- 1. LEFT: CART ITEMS LIST (Flipkart Style) -->
+    <div>
+        <!-- Free Delivery Banner -->
+        {% if amount_needed_for_free_delivery > 0 %}
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px 18px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 14px; color: #1e40af; display:flex; align-items:center; justify-content:space-between;">
+            <div>
+                🚚 Add <strong>₹{{ amount_needed_for_free_delivery }}</strong> more to unlock <strong>FREE Delivery</strong>!
+            </div>
+            <a href="{% url 'product_list' %}" style="font-weight: 700; text-decoration: underline;">Shop More</a>
+        </div>
+        {% else %}
+        <div style="background: var(--success-light); border: 1px solid #86efac; padding: 12px 18px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 14px; color: #14532d; font-weight: 600;">
+            🎉 Congratulations! Your order qualifies for <strong>FREE Doorstep Delivery</strong>.
+        </div>
+        {% endif %}
+
+        <div class="cart-items-container">
+            <div class="cart-header">
+                <h2 style="font-size: 18px;">Kisan Shopping Basket ({{ items|length }} Items)</h2>
+                <a href="{% url 'product_list' %}" style="font-size: 13px; color: var(--primary); font-weight: 600;">+ Add More Products</a>
+            </div>
+
+            {% for item in items %}
+            <div class="cart-item-row" id="cartItem-{{ item.product.id }}">
+                <!-- Product Image -->
+                <div class="cart-item-img">
+                    {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                    {% else %}
+                    <div style="font-size: 40px;">🌱</div>
+                    {% endif %}
+                </div>
+
+                <!-- Product Details -->
+                <div class="cart-item-info">
+                    <span class="brand">{{ item.product.brand|default:"FarmKart Certified" }}</span>
+                    <a href="{% url 'product_detail' item.product.id %}">
+                        <h3>{{ item.product.name }}</h3>
+                    </a>
+                    {% if item.product.hindi_name %}
+                    <div style="font-size: 12px; color: #166534; margin-bottom: 4px;">{{ item.product.hindi_name }}</div>
+                    {% endif %}
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+                        Pack: {{ item.product.unit }}
+                    </div>
+
+                    <div style="display:flex; align-items:baseline; gap:8px;">
+                        <span style="font-size: 18px; font-weight: 800; color: var(--text-main);">
+                            ₹{{ item.product.sale_price }}
+                        </span>
+                        {% if item.product.discount > 0 %}
+                        <span style="font-size: 13px; color: var(--text-light); text-decoration: line-through;">
+                            ₹{{ item.product.price }}
+                        </span>
+                        <span style="font-size: 12px; color: var(--success); font-weight: 700;">
+                            {{ item.product.discount|floatformat:0 }}% off
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Quantity Stepper -->
+                    <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+                        <form method="post" action="{% url 'update_cart' item.product.id %}" style="display:flex;">
+                            {% csrf_token %}
+                            <div class="qty-stepper">
+                                <button type="submit" name="action" value="decrease" title="Decrease">−</button>
+                                <span>{{ item.qty }}</span>
+                                <button type="submit" name="action" value="increase" title="Increase" {% if item.qty >= item.product.stock %}disabled{% endif %}>+</button>
+                            </div>
+                        </form>
+
+                        <a href="{% url 'remove_from_cart' item.product.id %}" style="font-size: 13px; color: #dc2626; font-weight: 600;">
+                            ✕ Remove
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Subtotal on Right -->
+                <div style="text-align: right;">
+                    <div style="font-size: 18px; font-weight: 800; color: var(--text-main); font-family: 'Outfit', sans-serif;">
+                        ₹{{ item.subtotal }}
+                    </div>
+                    {% if item.saved > 0 %}
+                    <div style="font-size: 12px; color: var(--success); font-weight: 600;">
+                        Saved ₹{{ item.saved }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Place Order Bottom Bar -->
+            <div style="padding: 16px 20px; background: #f8fafc; display: flex; justify-content: flex-end;">
+                <a href="{% url 'checkout' %}" class="btn btn-accent" style="padding: 12px 30px; font-size: 16px;">
+                    PROCEED TO CHECKOUT ➔
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. RIGHT: FLIPKART PRICE DETAILS CARD -->
+    <aside>
+        <div class="price-details-card">
+            <h3>Price Details (मूल्य विवरण)</h3>
+
+            <div class="price-row">
+                <span>Price ({{ items|length }} items)</span>
+                <span>₹{{ mrp_total }}</span>
+            </div>
+
+            <div class="price-row">
+                <span>Farmer Discount</span>
+                <span style="color: var(--success); font-weight: 700;">− ₹{{ savings_total }}</span>
+            </div>
+
+            <div class="price-row">
+                <span>Doorstep Delivery Charges</span>
+                <span>
+                    {% if delivery_fee == 0 %}
+                    <span class="free-delivery-badge">FREE</span>
+                    {% else %}
+                    ₹{{ delivery_fee }}
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="price-row total-row">
+                <span>Total Payable Amount</span>
+                <span>₹{{ final_total }}</span>
+            </div>
+
+            <div class="savings-alert">
+                🌾 You will save ₹{{ savings_total }} on this order!
+            </div>
+
+            <div style="margin-top: 20px;">
+                <a href="{% url 'checkout' %}" class="btn btn-accent btn-block" style="padding: 14px; font-size: 16px;">
+                    PLACE ORDER
+                </a>
+            </div>
+
+            <div style="margin-top: 20px; font-size: 12px; color: var(--text-muted); display:flex; align-items:center; gap:8px;">
+                <span style="font-size: 20px;">🛡️</span>
+                <span>Safe and Secure Payments. 100% Authentic Agricultural Products Guaranteed.</span>
+            </div>
+        </div>
+    </aside>
+</div>
+
+{% else %}
+<!-- Empty Cart State -->
+<div style="background: white; border-radius: var(--radius-lg); padding: 70px 20px; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm); max-width: 650px; margin: 40px auto;">
+    <div style="font-size: 70px; margin-bottom: 15px;">🛒</div>
+    <h2 style="font-size: 24px; margin-bottom: 10px;">Your Kisan Basket is Empty</h2>
+    <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">
+        Explore certified seeds, biological crop nutrients, and agricultural machinery at competitive prices.
+    </p>
+    <a href="{% url 'product_list' %}" class="btn btn-accent" style="padding: 12px 28px; font-size: 15px;">
+        Shop Farming Products Now
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}

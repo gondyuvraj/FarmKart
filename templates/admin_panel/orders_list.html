@@ -1,0 +1,114 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Manage Orders — FarmKart Admin{% endblock %}
+{% block page_title %}🚚 Farmer Orders & Delivery Fulfillment{% endblock %}
+
+{% block admin_content %}
+
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div>
+            <h4 class="admin-card-title">Customer Orders ({{ total_count }})</h4>
+            <span style="font-size: 13px; color: #64748b;">Manage fulfillment lifecycle, dispatch details, tracking IDs, and COD payments.</span>
+        </div>
+    </div>
+
+    <!-- Filters & Search Form -->
+    <form method="get" action="{% url 'admin_orders_list' %}" style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom: 20px; align-items:center; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0;">
+        <div style="flex-grow: 1; min-width: 220px;">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search customer name, phone, city, pincode..." style="width:100%; padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px;">
+        </div>
+
+        <div>
+            <select name="status" style="padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; background:white;">
+                <option value="">All Statuses</option>
+                {% for code, label in status_choices %}
+                <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <select name="payment" style="padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; background:white;">
+                <option value="">All Payment Modes</option>
+                <option value="COD" {% if payment_filter == 'COD' %}selected{% endif %}>Cash on Delivery (COD)</option>
+                <option value="UPI" {% if payment_filter == 'UPI' %}selected{% endif %}>UPI / QR Scan</option>
+                <option value="NETBANKING" {% if payment_filter == 'NETBANKING' %}selected{% endif %}>KCC / NetBanking</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-sm btn-primary" style="padding: 8px 16px;">
+            Filter
+        </button>
+
+        {% if q or status_filter or payment_filter %}
+        <a href="{% url 'admin_orders_list' %}" style="font-size: 13px; color: #64748b; text-decoration:none;">Reset</a>
+        {% endif %}
+    </form>
+
+    <!-- Orders Table -->
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Placed Date</th>
+                    <th>Farmer / Customer</th>
+                    <th>Destination</th>
+                    <th>Payment</th>
+                    <th>Current Status</th>
+                    <th>Total (₹)</th>
+                    <th style="width: 120px; text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in orders %}
+                <tr>
+                    <td>
+                        <strong style="color: #0f172a; font-size: 14px;">{{ o.order_number }}</strong>
+                    </td>
+                    <td style="font-size: 12px; color: #64748b;">
+                        {{ o.created_at|date:"M d, Y · h:i A" }}
+                    </td>
+                    <td>
+                        <strong style="display:block; color: #0f172a;">{{ o.name }}</strong>
+                        <span style="font-size: 12px; color: #64748b;">📞 {{ o.phone }}</span>
+                    </td>
+                    <td style="font-size: 12.5px;">
+                        {{ o.city }}, {{ o.state }} - <strong>{{ o.pincode }}</strong>
+                    </td>
+                    <td>
+                        <span class="pill-badge pill-info">{{ o.payment_method }}</span>
+                        {% if o.payment_status == 'PAID' %}
+                        <span class="pill-badge pill-success" style="font-size: 10px;">Paid</span>
+                        {% else %}
+                        <span class="pill-badge pill-warning" style="font-size: 10px;">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="pill-badge {% if o.status == 'DELIVERED' %}pill-success{% elif o.status == 'SHIPPED' or o.status == 'CONFIRMED' %}pill-info{% elif o.status == 'CANCELLED' %}pill-danger{% else %}pill-warning{% endif %}">
+                            {{ o.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <strong style="font-size: 15px; color: var(--primary);">₹{{ o.total }}</strong>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'admin_order_detail' o.id %}" class="btn-sm-action btn-edit">
+                            Fulfill ➔
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align:center; padding: 40px; color: #64748b;">
+                        No orders found matching the filter criteria.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

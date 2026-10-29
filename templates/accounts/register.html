@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Farmer Account — FarmKart Kisan Portal{% endblock %}
+
+{% block content %}
+
+<div style="max-width: 920px; margin: 30px auto; background: white; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-lg); overflow: hidden; display: grid; grid-template-columns: 320px 1fr;">
+    <!-- Left Flipkart-Style Brand Banner -->
+    <div style="background: linear-gradient(135deg, #0d532b 0%, #16a34a 100%); color: white; padding: 40px 30px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                🌾 Kisan Membership
+            </span>
+            <h2 style="font-size: 26px; color: white; margin: 12px 0 8px;">
+                Join 50,000+ Farmers
+            </h2>
+            <p style="font-size: 13.5px; color: #d1fae5; line-height: 1.6; margin: 0 0 20px;">
+                Create your verified farmer account to order certified agri-inputs, receive personalized crop advisory, and enjoy free rural delivery.
+            </p>
+
+            <div style="display:flex; flex-direction:column; gap:10px; font-size:12.5px; color:#ecfdf5;">
+                <div>✓ 100% Certified Seeds & Bio-Inputs</div>
+                <div>✓ Government Subsidy Guidance</div>
+                <div>✓ Free Doorstep Village Delivery</div>
+                <div>✓ Kisan Call Center Expert Support</div>
+            </div>
+        </div>
+
+        <div style="font-size: 65px; text-align: center; opacity: 0.85; margin: 25px 0;">
+            🚜
+        </div>
+
+        <div style="font-size: 11.5px; color: rgba(255,255,255,0.8); border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px;">
+            Already have an account? <a href="{% url 'login' %}" style="color: white; font-weight: 700;">Sign in here</a>
+        </div>
+    </div>
+
+    <!-- Right Registration Form -->
+    <div style="padding: 35px 35px;">
+        <h3 style="font-size: 21px; margin: 0 0 6px; color: var(--text-main);">Farmer Registration (किसान पंजीकरण)</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 22px;">Fill in your details to set up your FarmKart agricultural profile.</p>
+
+        <form method="post" action="{% url 'register' %}" id="registerForm">
+            {% csrf_token %}
+
+            <!-- 1. Personal & Contact Info -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div class="form-group">
+                    <label style="font-size: 12.5px; font-weight: 600; display:block; margin-bottom: 5px;">Your Full Name (पूरा नाम) *</label>
+                    <input type="text" name="first_name" required placeholder="e.g. Ramesh Patel" style="width:100%; padding: 9px 12px; font-size: 13.5px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+
+                <div class="form-group">
+                    <label style="font-size: 12.5px; font-weight: 600; display:block; margin-bottom: 5px;">Username / Login ID *</label>
+                    <input type="text" name="username" required placeholder="e.g. ramesh_kisan" style="width:100%; padding: 9px 12px; font-size: 13.5px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 18px;">
+                <div class="form-group">
+                    <label style="font-size: 12.5px; font-weight: 600; display:block; margin-bottom: 5px;">Mobile Number (मोबाइल नंबर) *</label>
+                    <input type="tel" name="phone" pattern="[0-9]{10}" required placeholder="10-digit mobile number" title="10-digit mobile number for delivery SMS" style="width:100%; padding: 9px 12px; font-size: 13.5px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+
+                <div class="form-group">
+                    <label style="font-size: 12.5px; font-weight: 600; display:block; margin-bottom: 5px;">Email Address (ईमेल - वैकल्पिक)</label>
+                    <input type="email" name="email" placeholder="e.g. ramesh@gmail.com" style="width:100%; padding: 9px 12px; font-size: 13.5px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+            </div>
+
+            <!-- 2. Agricultural Profile Box -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 18px;">
+                <div style="font-size: 12.5px; font-weight: 700; color: #166534; margin-bottom: 10px; display:flex; align-items:center; gap:6px;">
+                    🌾 Farming Profile (फसल एवं जमीन विवरण - व्यक्तिगत सलाह हेतु)
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; display:block; margin-bottom: 4px;">State (राज्य) *</label>
+                        <select name="state" required style="width:100%; padding: 8px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; background:white;">
+                            <option value="Maharashtra" selected>Maharashtra (महाराष्ट्र)</option>
+                            <option value="Gujarat">Gujarat (गुजरात)</option>
+                            <option value="Punjab">Punjab (पंजाब)</option>
+                            <option value="Haryana">Haryana (हरियाणा)</option>
+                            <option value="Madhya Pradesh">Madhya Pradesh (मध्य प्रदेश)</option>
+                            <option value="Uttar Pradesh">Uttar Pradesh (उत्तर प्रदेश)</option>
+                            <option value="Rajasthan">Rajasthan (राजस्थान)</option>
+                            <option value="Karnataka">Karnataka (कर्नाटक)</option>
+                            <option value="Bihar">Bihar (बिहार)</option>
+                            <option value="Other">Other State</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; display:block; margin-bottom: 4px;">District / Tehsil (जिला या तहसील)</label>
+                        <input type="text" name="district" placeholder="e.g. Pune / Baramati" style="width:100%; padding: 8px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; background:white;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; display:block; margin-bottom: 4px;">Primary Crop (प्रमुख फसल)</label>
+                        <select name="primary_crop" style="width:100%; padding: 8px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; background:white;">
+                            <option value="Wheat" selected>Wheat (गेहूं)</option>
+                            <option value="Paddy">Paddy / Rice (धान)</option>
+                            <option value="Cotton">Cotton (कपास)</option>
+                            <option value="Sugarcane">Sugarcane (गन्ना)</option>
+                            <option value="Soybean">Soybean (सोयाबीन)</option>
+                            <option value="Mustard">Mustard (सरसों)</option>
+                            <option value="Vegetables">Vegetables & Tomato (सब्जियां)</option>
+                            <option value="Potato">Potato (आलू)</option>
+                            <option value="Horticulture">Fruits & Horticulture (फल व बागवानी)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; display:block; margin-bottom: 4px;">Farm Land Area (रकबा)</label>
+                        <select name="land_size" style="width:100%; padding: 8px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; background:white;">
+                            <option value="< 2 Acres">Small Farm (< 2 Acres)</option>
+                            <option value="2 - 5 Acres" selected>Medium Farm (2 - 5 Acres)</option>
+                            <option value="5 - 10 Acres">Semi-Large (5 - 10 Acres)</option>
+                            <option value="> 10 Acres">Large Farmer (> 10 Acres)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Password and Confirm Password with Interactive Strength Meter -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 8px;">
+                <div class="form-group">
+                    <label style="font-size: 12.5px; font-weight: 600; display:block; margin-bottom: 5px;">Set Password *</label>
+                    <div style="position:relative;">
+                        <input 
+                            type="password" 
+                            name="password" 
+                            id="regPassword" 
+                            minlength="6" 
+                            required 
+                            placeholder="Min 6 characters" 
+                            oninput="checkPasswordStrength()"
+                            style="width:100%; padding: 9px 36px 9px 12px; font-size: 13.5px; border: 1px solid #cbd5e1; border-radius: 6px;"
+                        >
+                        <button type="button" onclick="toggleRegPassword('regPassword', this)" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#64748b;">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label style="font-size: 12.5px; font-weight: 600; display:block; margin-bottom: 5px;">Confirm Password *</label>
+                    <div style="position:relative;">
+                        <input 
+                            type="password" 
+                            name="confirm_password" 
+                            id="regConfirmPassword" 
+                            minlength="6" 
+                            required 
+                            placeholder="Re-enter password" 
+                            style="width:100%; padding: 9px 36px 9px 12px; font-size: 13.5px; border: 1px solid #cbd5e1; border-radius: 6px;"
+                        >
+                        <button type="button" onclick="toggleRegPassword('regConfirmPassword', this)" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#64748b;">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password Strength Bar Indicator -->
+            <div style="margin-bottom: 18px;">
+                <div style="height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden;">
+                    <div id="strengthBar" style="height: 100%; width: 0%; transition: all 0.3s ease; background: #ef4444;"></div>
+                </div>
+                <div id="strengthText" style="font-size: 11px; color: #64748b; margin-top: 4px;">Password Strength: Min 6 characters</div>
+            </div>
+
+            <!-- Terms Checkbox -->
+            <div style="margin-bottom: 20px;">
+                <label style="display:flex; align-items:flex-start; gap:8px; font-size: 12.5px; color: #475569; cursor:pointer;">
+                    <input type="checkbox" required checked style="margin-top: 3px;">
+                    <span>I agree to receive agricultural advisories and accept the FarmKart Kisan Terms of Service.</span>
+                </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-accent btn-block" style="padding: 12px; font-size: 15px; font-weight: 700; margin-bottom: 16px;">
+                🌾 CREATE MY KISAN ACCOUNT
+            </button>
+
+            <!-- Login Link -->
+            <div style="text-align: center; font-size: 13.5px; color: var(--text-muted);">
+                Already registered? 
+                <a href="{% url 'login' %}" style="color: var(--primary); font-weight: 700; text-decoration:none;">
+                    Sign In Here (लॉगिन करें) ➔
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleRegPassword(fieldId, btn) {
+    const input = document.getElementById(fieldId);
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerText = '🙈';
+    } else {
+        input.type = 'password';
+        btn.innerText = '👁️';
+    }
+}
+
+function checkPasswordStrength() {
+    const pass = document.getElementById('regPassword').value;
+    const bar = document.getElementById('strengthBar');
+    const text = document.getElementById('strengthText');
+
+    let strength = 0;
+    if (pass.length >= 6) strength += 1;
+    if (pass.length >= 8) strength += 1;
+    if (/[0-9]/.test(pass)) strength += 1;
+    if (/[A-Z]/.test(pass) || /[^A-Za-z0-9]/.test(pass)) strength += 1;
+
+    if (pass.length === 0) {
+        bar.style.width = '0%';
+        text.innerText = 'Password Strength: Min 6 characters';
+        text.style.color = '#64748b';
+    } else if (strength <= 1) {
+        bar.style.width = '25%';
+        bar.style.background = '#ef4444';
+        text.innerText = 'Password Strength: Weak (कमजोर)';
+        text.style.color = '#ef4444';
+    } else if (strength <= 2) {
+        bar.style.width = '50%';
+        bar.style.background = '#f59e0b';
+        text.innerText = 'Password Strength: Fair (मध्यम)';
+        text.style.color = '#f59e0b';
+    } else if (strength <= 3) {
+        bar.style.width = '75%';
+        bar.style.background = '#3b82f6';
+        text.innerText = 'Password Strength: Good (अच्छा)';
+        text.style.color = '#3b82f6';
+    } else {
+        bar.style.width = '100%';
+        bar.style.background = '#16a34a';
+        text.innerText = 'Password Strength: Strong (मजबूत)';
+        text.style.color = '#16a34a';
+    }
+}
+</script>
+
+{% endblock %}

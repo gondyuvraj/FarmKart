@@ -1,0 +1,158 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}{% if is_edit %}Edit {{ product.name }}{% else %}Add Product{% endif %} — FarmKart Admin{% endblock %}
+{% block page_title %}{% if is_edit %}✏️ Edit Agricultural Product{% else %}➕ Add New Agricultural Product{% endif %}{% endblock %}
+
+{% block admin_content %}
+
+<div style="max-width: 900px; margin: 0 auto;">
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <div>
+                <h4 class="admin-card-title">
+                    {% if is_edit %}Editing: {{ product.name }}{% else %}New Agricultural Product Specifications{% endif %}
+                </h4>
+                <span style="font-size: 13px; color: #64748b;">
+                    Provide accurate crop guides, dosage recommendations, and packaging for farmer clarity.
+                </span>
+            </div>
+
+            <a href="{% url 'admin_products_list' %}" class="btn btn-sm btn-outline" style="text-decoration:none;">
+                ← Back to Inventory
+            </a>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <!-- Product Name -->
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">Product Title (English) *</label>
+                    <input type="text" name="name" value="{{ product.name|default:'' }}" required placeholder="e.g. IFFCO Water Soluble NPK 19-19-19" style="width:100%; padding: 10px; font-size:13.5px; border: 1px solid #cbd5e1; border-radius:6px;">
+                </div>
+
+                <!-- Hindi Name -->
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">Hindi Title (हिन्दी नाम)</label>
+                    <input type="text" name="hindi_name" value="{{ product.hindi_name|default:'' }}" placeholder="उदा. इफको घुलनशील एनपीके 19-19-19" style="width:100%; padding: 10px; font-size:13.5px; border: 1px solid #cbd5e1; border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <!-- Category -->
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">Agri Category *</label>
+                    <select name="category" required style="width:100%; padding: 10px; font-size:13.5px; border: 1px solid #cbd5e1; border-radius:6px; background:white;">
+                        <option value="">Select Category</option>
+                        {% for c in categories %}
+                        <option value="{{ c.id }}" {% if product and product.category.id == c.id %}selected{% endif %}>{{ c.name }} ({{ c.hindi_name }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Brand -->
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">Brand / Manufacturer</label>
+                    <input type="text" name="brand" value="{{ product.brand|default:'' }}" placeholder="e.g. IFFCO, Bayer, Syngenta" style="width:100%; padding: 10px; font-size:13.5px; border: 1px solid #cbd5e1; border-radius:6px;">
+                </div>
+
+                <!-- Packaging Unit -->
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">Packaging Pack Size</label>
+                    <input type="text" name="unit" value="{{ product.unit|default:'1 Kg' }}" placeholder="e.g. 1 Kg Pack, 500 ml Bottle, 10 Kg Bag" style="width:100%; padding: 10px; font-size:13.5px; border: 1px solid #cbd5e1; border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <!-- Price -->
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">MRP Price (₹) *</label>
+                    <input type="number" step="0.01" name="price" value="{{ product.price|default:'' }}" required placeholder="e.g. 450" style="width:100%; padding: 10px; font-size:13.5px; border: 1px solid #cbd5e1; border-radius:6px;">
+                </div>
+
+                <!-- Discount -->
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">Farmer Discount (%)</label>
+                    <input type="number" step="0.01" name="discount" value="{{ product.discount|default:'0' }}" placeholder="e.g. 15" style="width:100%; padding: 10px; font-size:13.5px; border: 1px solid #cbd5e1; border-radius:6px;">
+                </div>
+
+                <!-- Stock Quantity -->
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">Stock Inventory (Units) *</label>
+                    <input type="number" name="stock" value="{{ product.stock|default:'50' }}" required placeholder="e.g. 100" style="width:100%; padding: 10px; font-size:13.5px; border: 1px solid #cbd5e1; border-radius:6px;">
+                </div>
+            </div>
+
+            <!-- Agricultural Guides (Dosage, Crop type, Method) -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; margin-bottom: 20px;">
+                <h5 style="margin: 0 0 12px; font-size: 14px; color: #166534;">🌾 Farmer Application & Crop Guide (फसल एवं प्रयोग विवरण)</h5>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                    <div>
+                        <label style="font-weight:600; font-size:12.5px; display:block; margin-bottom:4px;">Recommended Crops</label>
+                        <input type="text" name="crop_type" value="{{ product.crop_type|default:'' }}" placeholder="e.g. Wheat, Paddy, Cotton, Tomato" style="width:100%; padding: 8px 10px; font-size:13px; border: 1px solid #cbd5e1; border-radius:6px; background:white;">
+                    </div>
+
+                    <div>
+                        <label style="font-weight:600; font-size:12.5px; display:block; margin-bottom:4px;">Dosage (मात्रा)</label>
+                        <input type="text" name="dosage" value="{{ product.dosage|default:'' }}" placeholder="e.g. 1 kg / Acre or 5 gm / Litre" style="width:100%; padding: 8px 10px; font-size:13px; border: 1px solid #cbd5e1; border-radius:6px; background:white;">
+                    </div>
+
+                    <div>
+                        <label style="font-weight:600; font-size:12.5px; display:block; margin-bottom:4px;">Application Method</label>
+                        <input type="text" name="application_method" value="{{ product.application_method|default:'Foliar Spray' }}" placeholder="e.g. Foliar Spray, Seed Treatment" style="width:100%; padding: 8px 10px; font-size:13px; border: 1px solid #cbd5e1; border-radius:6px; background:white;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Description -->
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label" style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">Full Product Description & Farmer Benefits</label>
+                <textarea name="description" rows="5" placeholder="Detailed product specifications, composition, benefits, and storage instructions..." style="width:100%; padding: 10px; font-size:13.5px; border: 1px solid #cbd5e1; border-radius:6px; font-family: inherit;">{{ product.description|default:'' }}</textarea>
+            </div>
+
+            <!-- Product Image Upload -->
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label" style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">Product Image</label>
+                {% if product and product.image %}
+                <div style="display:flex; align-items:center; gap: 15px; margin-bottom: 10px;">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 70px; height: 70px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <span style="font-size: 12px; color: #64748b;">Current image: {{ product.image.name }}</span>
+                </div>
+                {% endif %}
+                <input type="file" name="image" accept="image/*" style="font-size: 13px;">
+            </div>
+
+            <!-- Badges Checkboxes -->
+            <div style="display:flex; gap: 30px; margin-bottom: 25px; padding: 12px 16px; background: #f1f5f9; border-radius: 6px;">
+                <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; cursor:pointer;">
+                    <input type="checkbox" name="is_organic" value="1" {% if product and product.is_organic %}checked{% endif %}>
+                    🌱 100% Certified Organic (जैविक)
+                </label>
+
+                <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; cursor:pointer;">
+                    <input type="checkbox" name="is_featured" value="1" {% if product and product.is_featured %}checked{% endif %}>
+                    ⭐ Featured on Homepage
+                </label>
+
+                <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; cursor:pointer;">
+                    <input type="checkbox" name="is_best_seller" value="1" {% if product and product.is_best_seller %}checked{% endif %}>
+                    🔥 Best Seller Badge
+                </label>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display:flex; gap: 12px;">
+                <button type="submit" class="btn btn-accent" style="padding: 12px 28px; font-size: 14px;">
+                    {% if is_edit %}Save Changes & Update Product{% else %}Publish Product to Store{% endif %}
+                </button>
+                <a href="{% url 'admin_products_list' %}" class="btn btn-outline" style="padding: 12px 20px; font-size: 14px; text-decoration:none;">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout — FarmKart Secure Order{% endblock %}
+
+{% block content %}
+
+<h1 style="font-size: 24px; margin-bottom: 25px;">Secure Kisan Checkout (ऑर्डर चेकआउट)</h1>
+
+<form method="post" action="{% url 'checkout' %}" id="checkoutForm">
+    {% csrf_token %}
+    <div class="checkout-layout">
+        <!-- 1. LEFT SIDE: ADDRESS & PAYMENT STEPS -->
+        <div>
+            <!-- Step 1: Delivery Address -->
+            <div class="checkout-step">
+                <div class="checkout-step-header">
+                    <span class="step-number">1</span>
+                    <h2 style="font-size: 16px; margin: 0;">Delivery Address & Kisan Details (डिलीवरी का पता)</h2>
+                </div>
+                <div class="checkout-step-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Farmer / Buyer Full Name (पूरा नाम) *</label>
+                            <input type="text" name="name" value="{{ user.get_full_name|default:user.username }}" required placeholder="e.g. Ramesh Patel">
+                        </div>
+
+                        <div class="form-group">
+                            <label>10-Digit Mobile Number (मोबाइल नंबर) *</label>
+                            <input type="tel" name="phone" value="{{ user.profile.phone|default:'' }}" pattern="[0-9]{10}" required placeholder="e.g. 9876543210" title="10-digit mobile number for delivery updates">
+                        </div>
+
+                        <div class="form-group form-full">
+                            <label>Village / Street Address / Farm Location (गाँव या मकान का पता) *</label>
+                            <textarea name="address" rows="2" required placeholder="e.g. Farm House No. 14, Near Krishi Mandi, Post Office Road"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Village / Tehsil / City (तहसील या शहर) *</label>
+                            <input type="text" name="city" value="{{ user.profile.district|default:'' }}" required placeholder="e.g. Mehsana">
+                        </div>
+
+                        <div class="form-group">
+                            <label>State (राज्य) *</label>
+                            <select name="state" required>
+                                <option value="Maharashtra" {% if user.profile.state == 'Maharashtra' %}selected{% endif %}>Maharashtra (महाराष्ट्र)</option>
+                                <option value="Gujarat" {% if user.profile.state == 'Gujarat' %}selected{% endif %}>Gujarat (गुजरात)</option>
+                                <option value="Punjab" {% if user.profile.state == 'Punjab' %}selected{% endif %}>Punjab (पंजाब)</option>
+                                <option value="Haryana" {% if user.profile.state == 'Haryana' %}selected{% endif %}>Haryana (हरियाणा)</option>
+                                <option value="Madhya Pradesh" {% if user.profile.state == 'Madhya Pradesh' %}selected{% endif %}>Madhya Pradesh (मध्य प्रदेश)</option>
+                                <option value="Uttar Pradesh" {% if user.profile.state == 'Uttar Pradesh' %}selected{% endif %}>Uttar Pradesh (उत्तर प्रदेश)</option>
+                                <option value="Rajasthan" {% if user.profile.state == 'Rajasthan' %}selected{% endif %}>Rajasthan (राजस्थान)</option>
+                                <option value="Karnataka" {% if user.profile.state == 'Karnataka' %}selected{% endif %}>Karnataka (कर्नाटक)</option>
+                                <option value="Telangana" {% if user.profile.state == 'Telangana' %}selected{% endif %}>Telangana (तेलंगाना)</option>
+                                <option value="Andhra Pradesh" {% if user.profile.state == 'Andhra Pradesh' %}selected{% endif %}>Andhra Pradesh (आंध्र प्रदेश)</option>
+                                <option value="Bihar" {% if user.profile.state == 'Bihar' %}selected{% endif %}>Bihar (बिहार)</option>
+                                <option value="West Bengal" {% if user.profile.state == 'West Bengal' %}selected{% endif %}>West Bengal (पश्चिम बंगाल)</option>
+                                <option value="Other">Other State</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Pincode (पिन कोड) *</label>
+                            <input type="text" name="pincode" pattern="[0-9]{6}" maxlength="6" required placeholder="e.g. 411001">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Landmark (पहचान चिह्न / पास में क्या है)</label>
+                            <input type="text" name="landmark" placeholder="e.g. Near Water Tank, Primary School, Mandi Gate">
+                        </div>
+
+                        <div class="form-group form-full">
+                            <label>Delivery Instructions / Notes for Courier (वैकल्पिक टिप्पणी)</label>
+                            <input type="text" name="notes" placeholder="e.g. Call before delivery, deliver after 10 AM">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Payment Mode -->
+            <div class="checkout-step">
+                <div class="checkout-step-header">
+                    <span class="step-number">2</span>
+                    <h2 style="font-size: 16px; margin: 0;">Payment Options (भुगतान का तरीका)</h2>
+                </div>
+                <div class="checkout-step-body">
+                    <div class="payment-radio-box">
+                        <label class="payment-option selected" id="codOption">
+                            <input type="radio" name="payment_method" value="COD" checked>
+                            <div>
+                                <strong style="font-size: 15px; display:block;">💵 Cash on Delivery (पे ऑन डिलीवरी)</strong>
+                                <span style="font-size: 13px; color: var(--text-muted);">
+                                    Pay cash or scan QR upon physical delivery at your farm or doorstep.
+                                </span>
+                            </div>
+                        </label>
+
+                        <label class="payment-option" id="upiOption">
+                            <input type="radio" name="payment_method" value="UPI">
+                            <div>
+                                <strong style="font-size: 15px; display:block;">📱 UPI / QR Code (PhonePe / GPay / Paytm)</strong>
+                                <span style="font-size: 13px; color: var(--text-muted);">
+                                    Instant zero-fee payment using any UPI application.
+                                </span>
+                            </div>
+                        </label>
+
+                        <label class="payment-option" id="kccOption">
+                            <input type="radio" name="payment_method" value="NETBANKING">
+                            <div>
+                                <strong style="font-size: 15px; display:block;">💳 Kisan Credit Card (KCC) / NetBanking</strong>
+                                <span style="font-size: 13px; color: var(--text-muted);">
+                                    Pay via SBI, PNB, Bank of Baroda or agricultural credit accounts.
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. RIGHT SIDE: ORDER SUMMARY & PAYMENT SUMMARY -->
+        <aside>
+            <div class="price-details-card">
+                <h3>Order Summary (ऑर्डर सारांश)</h3>
+
+                <div style="max-height: 200px; overflow-y: auto; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+                    {% for p, q, s in items %}
+                    <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
+                        <span>{{ p.name|truncatechars:26 }} × {{ q }}</span>
+                        <strong>₹{{ s }}</strong>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="price-row">
+                    <span>Total Items MRP</span>
+                    <span>₹{{ mrp_total }}</span>
+                </div>
+
+                <div class="price-row">
+                    <span>Special Kisan Savings</span>
+                    <span style="color: var(--success); font-weight: 700;">− ₹{{ savings_total }}</span>
+                </div>
+
+                <div class="price-row">
+                    <span>Delivery Charges</span>
+                    <span>
+                        {% if delivery_fee == 0 %}
+                        <span class="free-delivery-badge">FREE</span>
+                        {% else %}
+                        ₹{{ delivery_fee }}
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="price-row total-row">
+                    <span>Total Payable</span>
+                    <span>₹{{ final_total }}</span>
+                </div>
+
+                <div class="savings-alert">
+                    🌾 Total Savings on this order: ₹{{ savings_total }}
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button type="submit" class="btn btn-accent btn-block" style="padding: 14px; font-size: 16px;" id="confirmOrderBtn">
+                        CONFIRM & PLACE ORDER ➔
+                    </button>
+                </div>
+
+                <div style="margin-top: 15px; font-size: 12px; color: var(--text-muted); text-align: center;">
+                    By confirming, you agree to FarmKart's terms of agricultural input delivery.
+                </div>
+            </div>
+        </aside>
+    </div>
+</form>
+
+{% endblock %}

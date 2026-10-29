@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+{% if selected_category %}{{ selected_category.name }} — FarmKart{% elif q %}Search for "{{ q }}" — FarmKart{% else %}Agricultural Products Catalog — FarmKart{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumbs -->
+<div style="font-size: 13px; color: var(--text-muted); margin-bottom: 18px; display:flex; align-items:center; gap:6px;">
+    <a href="{% url 'home' %}">Home</a>
+    <span>›</span>
+    <a href="{% url 'product_list' %}">All Agri Inputs</a>
+    {% if selected_category %}
+    <span>›</span>
+    <span style="color: var(--primary); font-weight:600;">{{ selected_category.name }}</span>
+    {% endif %}
+    {% if q %}
+    <span>›</span>
+    <span>Search: "{{ q }}"</span>
+    {% endif %}
+</div>
+
+<div class="shop-layout">
+    <!-- 1. LEFT FILTER SIDEBAR (Flipkart Style) -->
+    <aside class="filter-sidebar">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid var(--border);">
+            <h3 style="font-size: 16px;">Filters</h3>
+            {% if cat_id or q or organic or in_stock_only or min_price or max_price %}
+            <a href="{% url 'product_list' %}" style="font-size: 12px; color: #dc2626; font-weight:700;">Clear All</a>
+            {% endif %}
+        </div>
+
+        <form method="get" action="{% url 'product_list' %}" id="filterForm">
+            {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+            {% if sort_by %}<input type="hidden" name="sort" value="{{ sort_by }}">{% endif %}
+
+            <!-- Category Filter -->
+            <div class="filter-group">
+                <div class="filter-title">Categories</div>
+                <div class="filter-item {% if not cat_id %}active{% endif %}">
+                    <a href="{% url 'product_list' %}{% if q %}?q={{ q }}{% endif %}">All Categories</a>
+                </div>
+                {% for c in categories %}
+                <div class="filter-item {% if cat_id == c.id|stringformat:'s' %}active{% endif %}">
+                    <a href="{% url 'product_list' %}?category={{ c.id }}{% if q %}&q={{ q }}{% endif %}">
+                        {{ c.icon }} {{ c.name }}
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Price Range Filter -->
+            <div class="filter-group">
+                <div class="filter-title">Price Range (₹)</div>
+                <div style="display:flex; gap:8px; margin-bottom:10px;">
+                    <input type="number" name="min_price" placeholder="Min ₹" value="{{ min_price }}" style="width:50%; padding:6px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
+                    <input type="number" name="max_price" placeholder="Max ₹" value="{{ max_price }}" style="width:50%; padding:6px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
+                </div>
+                <button type="submit" class="btn btn-outline btn-block" style="padding:6px; font-size:12px;">Apply Price</button>
+            </div>
+
+            <!-- Farmer Attributes -->
+            <div class="filter-group">
+                <div class="filter-title">Special Preferences</div>
+                <label style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:13px; cursor:pointer;">
+                    <input type="checkbox" name="organic" value="1" {% if organic == '1' %}checked{% endif %} onchange="document.getElementById('filterForm').submit()">
+                    <span>🌿 100% Bio-Organic Only</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
+                    <input type="checkbox" name="in_stock" value="1" {% if in_stock_only == '1' %}checked{% endif %} onchange="document.getElementById('filterForm').submit()">
+                    <span>✓ In Stock Items Only</span>
+                </label>
+            </div>
+
+            <!-- Kisan Assistance Card in Sidebar -->
+            <div style="background: #f0fdf4; border: 1px dashed #86efac; border-radius: 8px; padding: 12px; font-size: 12px;">
+                <p style="font-weight: 700; color: #166534; margin-bottom: 4px;">🚜 Need Crop Advisory?</p>
+                <p style="color: #475569; margin-bottom: 8px;">Our agronomists help you calculate seed and fertilizer quantities.</p>
+                <a href="tel:18001801551" style="color: #16a34a; font-weight: 700;">📞 1800-180-1551</a>
+            </div>
+        </form>
+    </aside>
+
+    <!-- 2. RIGHT MAIN PRODUCT AREA -->
+    <main>
+        <!-- Flipkart Sort Toolbar -->
+        <div class="sort-bar">
+            <div style="font-size:14px; color:#475569;">
+                Showing <strong>{{ total_count }}</strong> items
+                {% if selected_category %}in <strong>{{ selected_category.name }}</strong>{% endif %}
+                {% if q %}for "<strong>{{ q }}</strong>"{% endif %}
+            </div>
+
+            <div class="sort-options">
+                <span style="font-weight: 700; font-size: 13px; color: var(--text-main);">Sort By:</span>
+                <a href="?{% if cat_id %}category={{ cat_id }}&{% endif %}{% if q %}q={{ q }}&{% endif %}{% if organic %}organic={{ organic }}&{% endif %}sort=popular" 
+                   class="sort-btn {% if sort_by == 'popular' %}active{% endif %}">Popularity</a>
+                <a href="?{% if cat_id %}category={{ cat_id }}&{% endif %}{% if q %}q={{ q }}&{% endif %}{% if organic %}organic={{ organic }}&{% endif %}sort=price_low" 
+                   class="sort-btn {% if sort_by == 'price_low' %}active{% endif %}">Price: Low to High</a>
+                <a href="?{% if cat_id %}category={{ cat_id }}&{% endif %}{% if q %}q={{ q }}&{% endif %}{% if organic %}organic={{ organic }}&{% endif %}sort=price_high" 
+                   class="sort-btn {% if sort_by == 'price_high' %}active{% endif %}">Price: High to Low</a>
+                <a href="?{% if cat_id %}category={{ cat_id }}&{% endif %}{% if q %}q={{ q }}&{% endif %}{% if organic %}organic={{ organic }}&{% endif %}sort=rating" 
+                   class="sort-btn {% if sort_by == 'rating' %}active{% endif %}">Customer Rating</a>
+                <a href="?{% if cat_id %}category={{ cat_id }}&{% endif %}{% if q %}q={{ q }}&{% endif %}{% if organic %}organic={{ organic }}&{% endif %}sort=discount" 
+                   class="sort-btn {% if sort_by == 'discount' %}active{% endif %}">Discount</a>
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="product-grid">
+            {% for p in products %}
+            <div class="product-card">
+                <div class="card-badge-container">
+                    {% if p.discount > 0 %}
+                    <span class="badge-discount">{{ p.discount|floatformat:0 }}% OFF</span>
+                    {% endif %}
+                    {% if p.is_organic %}
+                    <span class="badge-organic">100% Bio</span>
+                    {% endif %}
+                </div>
+
+                <a href="{% url 'toggle_wishlist' p.id %}?next={{ request.get_full_path }}" 
+                   class="wishlist-heart-btn {% if p.id in wished_ids %}active{% endif %}" 
+                   title="Save to Wishlist">
+                    {% if p.id in wished_ids %}❤️{% else %}🤍{% endif %}
+                </a>
+
+                <a href="{% url 'product_detail' p.id %}" class="product-img-box">
+                    {% if p.image %}
+                    <img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy">
+                    {% else %}
+                    <div style="font-size: 60px;">🌱</div>
+                    {% endif %}
+                </a>
+
+                <div class="product-info">
+                    <span class="product-brand">{{ p.brand|default:"FarmKart Certified" }}</span>
+                    <a href="{% url 'product_detail' p.id %}">
+                        <h3 class="product-title">{{ p.name }}</h3>
+                    </a>
+                    {% if p.hindi_name %}
+                    <div class="product-hindi">{{ p.hindi_name }}</div>
+                    {% endif %}
+
+                    <div>
+                        <span class="rating-badge">{{ p.rating }} ★</span>
+                        <span class="rating-count">({{ p.review_count|default:"10" }})</span>
+                        {% if p.stock > 0 and p.stock < 10 %}
+                        <span style="color:#ea580c; font-size:11px; font-weight:700; margin-left:8px;">Only {{ p.stock }} left!</span>
+                        {% elif p.stock == 0 %}
+                        <span style="color:#dc2626; font-size:11px; font-weight:700; margin-left:8px;">Out of Stock</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="pricing-box">
+                        <span class="sale-price">₹{{ p.sale_price }}</span>
+                        {% if p.discount > 0 %}
+                        <span class="mrp-price">₹{{ p.price }}</span>
+                        <span class="discount-text">{{ p.discount|floatformat:0 }}% off</span>
+                        {% endif %}
+                    </div>
+                    <div class="unit-tag">📦 {{ p.unit }} · {{ p.category.name }}</div>
+
+                    <div class="card-actions">
+                        <form action="{% url 'add_to_cart' p.id %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn-card-cart btn-block" {% if p.stock <= 0 %}disabled{% endif %}>
+                                🛒 Add
+                            </button>
+                        </form>
+                        <form action="{% url 'add_to_cart' p.id %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <input type="hidden" name="buy_now" value="1">
+                            <button type="submit" class="btn-card-buy btn-block" {% if p.stock <= 0 %}disabled{% endif %}>
+                                ⚡ Buy Now
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="grid-column: 1 / -1; background: white; padding: 50px 20px; border-radius: var(--radius-md); text-align: center; border: 1px solid var(--border);">
+                <div style="font-size: 50px; margin-bottom: 12px;">🌾</div>
+                <h3 style="font-size: 20px; margin-bottom: 8px;">No matching agricultural products found</h3>
+                <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">Try searching with different keywords or clear your applied filters.</p>
+                <a href="{% url 'product_list' %}" class="btn btn-accent">View All Agri Products</a>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</div>
+
+{% endblock %}

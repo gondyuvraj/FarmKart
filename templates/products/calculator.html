@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kisan Fertilizer & Crop Dosage Calculator — FarmKart{% endblock %}
+{% block meta_description %}Calculate the exact NPK, Urea, DAP, and Potash requirements for your field based on crop and acreage, and order genuine agricultural inputs directly on FarmKart.{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumbs -->
+<div style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; display:flex; align-items:center; gap:6px;">
+    <a href="{% url 'home' %}">Home</a>
+    <span>›</span>
+    <span style="color: var(--text-main); font-weight:600;">Kisan Crop & Fertilizer Calculator (खाद व पोषण गणक)</span>
+</div>
+
+<div style="max-width: 1050px; margin: 0 auto;">
+    <!-- Hero Banner -->
+    <div style="background: linear-gradient(135deg, #0d532b 0%, #16a34a 100%); color: white; border-radius: var(--radius-lg); padding: 35px 30px; margin-bottom: 30px; box-shadow: var(--shadow-md);">
+        <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase;">
+            🌾 ICAR & State Agri University Recommended Dosages
+        </span>
+        <h1 style="font-size: 28px; color: white; margin: 10px 0 6px;">
+            Kisan Fertilizer & Crop Advisory Calculator
+        </h1>
+        <p style="font-size: 14px; color: #d1fae5; margin: 0; line-height: 1.6;">
+            Select your crop and farm acreage to calculate exact requirements of <strong>Urea, DAP, MOP Potash, and Micronutrients</strong>. Prevent excessive soil damage and maximize yield per acre.
+        </p>
+    </div>
+
+    <!-- Calculator Selector Card -->
+    <div style="background: white; border-radius: var(--radius-md); padding: 25px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin-bottom: 30px;">
+        <form method="get" action="{% url 'agri_calculator' %}">
+            <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 20px; align-items: flex-end;">
+                <div>
+                    <label style="font-weight: 700; font-size: 14px; display:block; margin-bottom: 8px; color: #334155;">
+                        Select Crop (फसल चुनें):
+                    </label>
+                    <select name="crop" style="width: 100%; padding: 12px 14px; font-size: 14px; border: 1px solid var(--border); border-radius: 8px; background: white; font-weight: 600;">
+                        {% for code, c in crops.items %}
+                        <option value="{{ code }}" {% if selected_crop == code %}selected{% endif %}>
+                            {{ c.name }} · {{ c.season }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-weight: 700; font-size: 14px; display:block; margin-bottom: 8px; color: #334155;">
+                        Field Area in Acres (खेत का रकबा एकड़ में):
+                    </label>
+                    <input type="number" step="0.5" min="0.5" max="500" name="acres" value="{{ acres }}" style="width: 100%; padding: 12px 14px; font-size: 14px; border: 1px solid var(--border); border-radius: 8px; font-weight: 700;">
+                </div>
+
+                <div>
+                    <button type="submit" class="btn btn-accent" style="padding: 12px 24px; font-size: 14px; height: 46px;">
+                        ⚡ Calculate Requirements
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Display -->
+    <div style="background: white; border-radius: var(--radius-md); padding: 30px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin-bottom: 30px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom: 25px;">
+            <div>
+                <h2 style="font-size: 22px; margin: 0 0 4px; color: #0f172a;">
+                    Nutrient Recommendation for {{ result.crop_name }}
+                </h2>
+                <span style="font-size: 13px; color: var(--text-muted);">
+                    Calculated for <strong>{{ result.acres }} Acres</strong> · Season: {{ result.season }}
+                </span>
+            </div>
+
+            <span class="pill-badge pill-success" style="font-size: 13px; padding: 6px 14px;">
+                ✓ 100% Scientific NPK Balance
+            </span>
+        </div>
+
+        <!-- Metric Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 30px;">
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; text-align: center;">
+                <div style="font-size: 28px; margin-bottom: 6px;">⚪</div>
+                <div style="font-size: 12px; color: #166534; font-weight: 700; text-transform: uppercase;">Urea (46% N)</div>
+                <div style="font-size: 28px; font-weight: 800; color: #14532d; font-family: 'Outfit', sans-serif;">
+                    {{ result.urea_bags }} <span style="font-size: 14px;">Bags (45 kg)</span>
+                </div>
+            </div>
+
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 20px; text-align: center;">
+                <div style="font-size: 28px; margin-bottom: 6px;">🟤</div>
+                <div style="font-size: 12px; color: #1e40af; font-weight: 700; text-transform: uppercase;">DAP (18-46-0)</div>
+                <div style="font-size: 28px; font-weight: 800; color: #1e3a8a; font-family: 'Outfit', sans-serif;">
+                    {{ result.dap_bags }} <span style="font-size: 14px;">Bags (50 kg)</span>
+                </div>
+            </div>
+
+            <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 20px; text-align: center;">
+                <div style="font-size: 28px; margin-bottom: 6px;">🔴</div>
+                <div style="font-size: 12px; color: #854d0e; font-weight: 700; text-transform: uppercase;">MOP Potash (0-0-60)</div>
+                <div style="font-size: 28px; font-weight: 800; color: #713f12; font-family: 'Outfit', sans-serif;">
+                    {{ result.mop_bags }} <span style="font-size: 14px;">Bags (50 kg)</span>
+                </div>
+            </div>
+
+            <div style="background: #f3e8ff; border: 1px solid #e9d5ff; border-radius: 8px; padding: 20px; text-align: center;">
+                <div style="font-size: 28px; margin-bottom: 6px;">💧</div>
+                <div style="font-size: 12px; color: #7e22ce; font-weight: 700; text-transform: uppercase;">Zinc Sulfate (21% / 33%)</div>
+                <div style="font-size: 28px; font-weight: 800; color: #581c87; font-family: 'Outfit', sans-serif;">
+                    {{ result.zinc_kg }} <span style="font-size: 14px;">Kg</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage by stage Application Timing Guide -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 10px;">
+            <h4 style="font-size: 15px; margin-bottom: 12px; color: #1e293b;">
+                📅 Stage-Wise Application Timetable (खाद कब और कैसे दें):
+            </h4>
+            <div style="display:flex; flex-direction:column; gap: 10px;">
+                {% for stage in result.stages %}
+                <div style="display:flex; align-items:flex-start; gap: 10px; font-size: 13.5px; line-height: 1.5; color: #334155;">
+                    <span style="color: #16a34a; font-weight: 700;">✓</span>
+                    <span>{{ stage }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Direct Products Matching from FarmKart Catalog -->
+    <div style="background: white; border-radius: var(--radius-md); padding: 30px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin-bottom: 40px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h3 style="font-size: 18px; margin: 0;">🛒 Certified Inputs Available to Buy for {{ result.crop_name }}</h3>
+                <span style="font-size: 13px; color: var(--text-muted);">Directly sourced with free doorstep village delivery</span>
+            </div>
+
+            <a href="{% url 'product_list' %}" style="font-size: 13px; color: var(--primary); font-weight: 700;">Browse All Agri Products ➔</a>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
+            {% for p in recommended_products %}
+            <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; display:flex; flex-direction:column; justify-content:space-between;">
+                <div>
+                    <div style="font-size: 11px; color: #64748b; font-weight:700; text-transform:uppercase; margin-bottom:4px;">{{ p.category.name }}</div>
+                    <a href="{% url 'product_detail' p.id %}" style="font-size: 14px; font-weight: 700; color: #0f172a; text-decoration:none; display:block; margin-bottom: 6px;">
+                        {{ p.name }}
+                    </a>
+                    <div style="font-size: 14px; font-weight: 800; color: #16a34a; margin-bottom: 10px;">
+                        ₹{{ p.sale_price }} <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">({{ p.unit }})</span>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap: 8px;">
+                    <a href="{% url 'product_detail' p.id %}" class="btn btn-outline" style="flex:1; font-size:12px; padding:6px; text-align:center;">
+                        Details
+                    </a>
+                    <form action="{% url 'add_to_cart' p.id %}" method="post" style="flex:1;">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="btn btn-accent" style="width:100%; font-size:12px; padding:6px;">
+                            + Buy
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

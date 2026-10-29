@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FarmKart — Kisan E-Commerce Portal | Certified Seeds, Sprayers, Fertilizers{% endblock %}
+
+{% block content %}
+
+<!-- 1. Flipkart-Style Hero Promo Banner -->
+<section class="hero-slider">
+    <div class="hero-banner-main">
+        <span class="hero-tag">⚡ Mega Season Agri Sale</span>
+        <h1>Kharif & Rabi Crop Essentials — Up to 25% OFF</h1>
+        <p>
+            Get Government-certified hybrid seeds, 100% water-soluble fertilizers, and heavy-duty battery sprayers with direct doorstep delivery across rural pin codes.
+        </p>
+        <div class="hero-cta">
+            <a href="{% url 'product_list' %}" class="btn btn-accent" id="heroShopNowBtn">
+                🚜 Shop Agri Deals Now
+            </a>
+            <a href="{% url 'product_list' %}?organic=1" class="btn btn-outline" style="color:white; border-color:rgba(255,255,255,0.4);" id="heroOrganicBtn">
+                🌿 100% Bio-Organic Range
+            </a>
+        </div>
+    </div>
+
+    <div class="hero-side-banners">
+        <div class="side-banner">
+            <div class="side-banner-icon">🛡️</div>
+            <div>
+                <h4>Certified Genuine Inputs</h4>
+                <p>Every seed packet & chemical tested for purity and high germination.</p>
+            </div>
+        </div>
+        <div class="side-banner">
+            <div class="side-banner-icon">🚚</div>
+            <div>
+                <h4>Fast Rural Doorstep Delivery</h4>
+                <p>Free delivery on orders above ₹999 with Pay on Delivery (COD).</p>
+            </div>
+        </div>
+        <div class="side-banner">
+            <div class="side-banner-icon">🌾</div>
+            <div>
+                <h4>Kisan Toll-Free Helpline</h4>
+                <p>Talk directly with experienced agronomists at 1800-180-1551.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 2. Flipkart-Style Deals of the Day -->
+<section style="margin-bottom: 40px;">
+    <div class="section-header">
+        <h2 class="section-title">
+            <span>🔥 Deals of the Day</span>
+            <span style="font-size:13px; font-weight:600; color:#dc2626; background:#fee2e2; padding:3px 8px; border-radius:4px;">
+                Special Farmer Discounts
+            </span>
+        </h2>
+        <a href="{% url 'product_list' %}?sort=discount" class="section-link">View All Deals ➔</a>
+    </div>
+
+    <div class="product-grid">
+        {% for p in deals_of_the_day %}
+        <div class="product-card" id="productCard-{{ p.id }}">
+            <div class="card-badge-container">
+                <span class="badge-discount">{{ p.discount|floatformat:0 }}% OFF</span>
+                {% if p.is_organic %}
+                <span class="badge-organic">100% Bio</span>
+                {% endif %}
+            </div>
+
+            <!-- Wishlist Button -->
+            <a href="{% url 'toggle_wishlist' p.id %}?next={{ request.path }}" 
+               class="wishlist-heart-btn {% if p.id in wished_ids %}active{% endif %}" 
+               title="Save to Wishlist">
+                {% if p.id in wished_ids %}❤️{% else %}🤍{% endif %}
+            </a>
+
+            <!-- Product Image -->
+            <a href="{% url 'product_detail' p.id %}" class="product-img-box">
+                {% if p.image %}
+                <img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy">
+                {% else %}
+                <div style="font-size: 60px;">🌾</div>
+                {% endif %}
+            </a>
+
+            <!-- Product Details -->
+            <div class="product-info">
+                <span class="product-brand">{{ p.brand|default:"FarmKart Certified" }}</span>
+                <a href="{% url 'product_detail' p.id %}">
+                    <h3 class="product-title">{{ p.name }}</h3>
+                </a>
+                {% if p.hindi_name %}
+                <div class="product-hindi">{{ p.hindi_name }}</div>
+                {% endif %}
+
+                <div>
+                    <span class="rating-badge">{{ p.rating }} ★</span>
+                    <span class="rating-count">({{ p.review_count|default:"12" }} reviews)</span>
+                </div>
+
+                <div class="pricing-box">
+                    <span class="sale-price">₹{{ p.sale_price }}</span>
+                    {% if p.discount > 0 %}
+                    <span class="mrp-price">₹{{ p.price }}</span>
+                    <span class="discount-text">Save ₹{{ p.save_amount }}</span>
+                    {% endif %}
+                </div>
+                <div class="unit-tag">📦 Pack: {{ p.unit }}</div>
+
+                <div class="card-actions">
+                    <form action="{% url 'add_to_cart' p.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="btn-card-cart btn-block">🛒 Add Cart</button>
+                    </form>
+                    <form action="{% url 'add_to_cart' p.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <input type="hidden" name="buy_now" value="1">
+                        <button type="submit" class="btn-card-buy btn-block">⚡ Buy Now</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- 3. Featured Agricultural Inputs -->
+<section style="margin-bottom: 40px;">
+    <div class="section-header">
+        <h2 class="section-title">
+            <span>⭐ Top Rated by Kisans</span>
+            <span style="font-size:13px; font-weight:600; color:#166534; background:#dcfce7; padding:3px 8px; border-radius:4px;">
+                Verified High Yield
+            </span>
+        </h2>
+        <a href="{% url 'product_list' %}" class="section-link">Explore Catalog ➔</a>
+    </div>
+
+    <div class="product-grid">
+        {% for p in featured_products %}
+        <div class="product-card">
+            <div class="card-badge-container">
+                {% if p.discount > 0 %}
+                <span class="badge-discount">{{ p.discount|floatformat:0 }}% OFF</span>
+                {% endif %}
+                {% if p.is_best_seller %}
+                <span class="badge-discount" style="background:#0284c7;">Best Seller</span>
+                {% endif %}
+            </div>
+
+            <a href="{% url 'toggle_wishlist' p.id %}?next={{ request.path }}" 
+               class="wishlist-heart-btn {% if p.id in wished_ids %}active{% endif %}" 
+               title="Save to Wishlist">
+                {% if p.id in wished_ids %}❤️{% else %}🤍{% endif %}
+            </a>
+
+            <a href="{% url 'product_detail' p.id %}" class="product-img-box">
+                {% if p.image %}
+                <img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy">
+                {% else %}
+                <div style="font-size: 60px;">🌱</div>
+                {% endif %}
+            </a>
+
+            <div class="product-info">
+                <span class="product-brand">{{ p.brand|default:"Verified" }}</span>
+                <a href="{% url 'product_detail' p.id %}">
+                    <h3 class="product-title">{{ p.name }}</h3>
+                </a>
+                {% if p.hindi_name %}
+                <div class="product-hindi">{{ p.hindi_name }}</div>
+                {% endif %}
+
+                <div>
+                    <span class="rating-badge">{{ p.rating }} ★</span>
+                    <span class="rating-count">({{ p.review_count|default:"8" }} ratings)</span>
+                </div>
+
+                <div class="pricing-box">
+                    <span class="sale-price">₹{{ p.sale_price }}</span>
+                    {% if p.discount > 0 %}
+                    <span class="mrp-price">₹{{ p.price }}</span>
+                    <span class="discount-text">{{ p.discount|floatformat:0 }}% off</span>
+                    {% endif %}
+                </div>
+                <div class="unit-tag">📦 {{ p.unit }}</div>
+
+                <div class="card-actions">
+                    <form action="{% url 'add_to_cart' p.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="btn-card-cart btn-block">🛒 Add</button>
+                    </form>
+                    <a href="{% url 'product_detail' p.id %}" class="btn-card-buy btn-block" style="text-align:center;">Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- 4. Kisan Advisory & Agricultural Guidance Banner (Farmer-Specific Feature) -->
+<section style="background: white; border-radius: var(--radius-lg); padding: 30px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 40px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom: 20px;">
+        <div>
+            <h2 style="font-size: 22px; color: var(--primary); display:flex; align-items:center; gap:8px;">
+                <span>🌾 Krishi Salah & Weather Advisory (किसान कृषि सलाह)</span>
+            </h2>
+            <p style="font-size: 14px; color: var(--text-muted);">Scientific crop protection & seasonal application recommendations</p>
+        </div>
+        <a href="tel:18001801551" class="btn btn-accent" style="font-size:13px;">📞 Call Agronomist Free</a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 12px;">
+            <div style="font-size: 28px; margin-bottom: 10px;">🧪</div>
+            <h4 style="font-size: 16px; margin-bottom: 8px; color: #166534;">Balanced Foliar Nutrition</h4>
+            <p style="font-size: 13px; color: #334155; line-height: 1.5;">
+                Spray water-soluble <strong>NPK 19:19:19</strong> at 5g/L during early tillering or vegetative stage. Enhances root mass and leaf chlorophyll.
+            </p>
+        </div>
+
+        <div style="background: #fefce8; border: 1px solid #fef08a; padding: 20px; border-radius: 12px;">
+            <div style="font-size: 28px; margin-bottom: 10px;">🌱</div>
+            <h4 style="font-size: 16px; margin-bottom: 8px; color: #854d0e;">Seed Treatment (बीज शोधन)</h4>
+            <p style="font-size: 13px; color: #334155; line-height: 1.5;">
+                Always treat certified wheat and vegetable seeds with bio-fungicide or neem formulations before sowing to prevent collar rot & fungal damping off.
+            </p>
+        </div>
+
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 20px; border-radius: 12px;">
+            <div style="font-size: 28px; margin-bottom: 10px;">💧</div>
+            <h4 style="font-size: 16px; margin-bottom: 8px; color: #1e40af;">Water Conservation (ड्रिप तकनीक)</h4>
+            <p style="font-size: 13px; color: #334155; line-height: 1.5;">
+                Switching to micro-drip kits conserves up to 70% irrigation water and applies fertigation directly to root zones without weed growth.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- 5. Kisan Verified Testimonials -->
+<section style="margin-bottom: 20px;">
+    <div class="section-header">
+        <h2 class="section-title">
+            <span>🗣️ What Farmers Say About FarmKart</span>
+        </h2>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+        <div style="background: white; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+            <div style="color: #f59e0b; font-size: 16px; margin-bottom: 10px;">★★★★★</div>
+            <p style="font-size: 14px; font-style: italic; color: #334155; margin-bottom: 14px;">
+                "I ordered HD-3086 Wheat Seeds. Delivered to my village in 3 days. 95% germination rate and excellent ear-head length."
+            </p>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: #dcfce7; color: #166534; font-weight: 700; display:flex; align-items:center; justify-content:center;">
+                    RP
+                </div>
+                <div>
+                    <h5 style="font-size: 14px; margin:0;">Ramesh Patel</h5>
+                    <span style="font-size: 12px; color: #64748b;">Mehsana, Gujarat · Verified Kisan</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: white; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+            <div style="color: #f59e0b; font-size: 16px; margin-bottom: 10px;">★★★★★</div>
+            <p style="font-size: 14px; font-style: italic; color: #334155; margin-bottom: 14px;">
+                "The double motor battery sprayer saved me so much manual labour during cotton spraying. Very light on back and good battery life."
+            </p>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: #e0f2fe; color: #0369a1; font-weight: 700; display:flex; align-items:center; justify-content:center;">
+                    SS
+                </div>
+                <div>
+                    <h5 style="font-size: 14px; margin:0;">Sukhdev Singh</h5>
+                    <span style="font-size: 12px; color: #64748b;">Ludhiana, Punjab · Verified Kisan</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: white; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+            <div style="color: #f59e0b; font-size: 16px; margin-bottom: 10px;">★★★★★</div>
+            <p style="font-size: 14px; font-style: italic; color: #334155; margin-bottom: 14px;">
+                "Pure neem oil and vermicompost for my vegetable nursery. Best pricing compared to local mandi dealers."
+            </p>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: #fef3c7; color: #b45309; font-weight: 700; display:flex; align-items:center; justify-content:center;">
+                    SY
+                </div>
+                <div>
+                    <h5 style="font-size: 14px; margin:0;">Santosh Yadav</h5>
+                    <span style="font-size: 12px; color: #64748b;">Hoshangabad, MP · Verified Kisan</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

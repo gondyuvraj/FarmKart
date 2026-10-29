@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Orders — FarmKart Order History{% endblock %}
+
+{% block content %}
+
+<div style="max-width: 1000px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h1 style="font-size: 24px; margin-bottom: 4px;">My Orders (मेरे ऑर्डर्स)</h1>
+            <p style="font-size: 14px; color: var(--text-muted);">Track your agricultural dispatches, delivery statuses, and invoices.</p>
+        </div>
+        <a href="{% url 'product_list' %}" class="btn btn-outline" style="font-size: 13px;">+ Shop More Agri Inputs</a>
+    </div>
+
+    {% for o in orders %}
+    <div class="order-card" id="order-{{ o.id }}">
+        <!-- Order Header -->
+        <div class="order-card-header">
+            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <div>
+                    <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Order ID</div>
+                    <strong style="font-size: 15px; color: var(--text-main);">{{ o.order_number }}</strong>
+                </div>
+                <div>
+                    <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Date Placed</div>
+                    <span style="font-size: 14px; color: #334155;">{{ o.created_at|date:"M d, Y · h:i A" }}</span>
+                </div>
+                <div>
+                    <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Total</div>
+                    <span style="font-size: 15px; font-weight: 800; color: var(--primary);">₹{{ o.total }}</span>
+                </div>
+            </div>
+
+            <div>
+                <span class="order-status-badge {% if o.status == 'DELIVERED' %}status-delivered{% elif o.status == 'SHIPPED' %}status-shipped{% else %}status-confirmed{% endif %}">
+                    ● {{ o.get_status_display }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div style="padding: 20px;">
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                {% for item in o.items.all %}
+                <div style="display: flex; align-items: center; gap: 15px; justify-content: space-between; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="width: 60px; height: 60px; background: #f8fafc; border-radius: 6px; border: 1px solid var(--border); display:flex; align-items:center; justify-content:center; padding: 4px;">
+                            {% if item.product and item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" style="max-width:100%; max-height:100%; object-fit:contain;">
+                            {% else %}
+                            <span style="font-size: 24px;">🌱</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h4 style="font-size: 15px; margin-bottom: 2px;">
+                                {% if item.product %}
+                                <a href="{% url 'product_detail' item.product.id %}" style="color:inherit;">{{ item.product.name }}</a>
+                                {% else %}
+                                <span>{{ item }}</span>
+                                {% endif %}
+                            </h4>
+                            <span style="font-size: 12px; color: var(--text-muted);">
+                                Qty: <strong>{{ item.quantity }}</strong> · Price: ₹{{ item.price }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 15px; font-weight: 700;">
+                        ₹{{ item.subtotal }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Footer Action Row -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 15px; flex-wrap: wrap; gap: 10px;">
+                <div style="font-size: 13px; color: var(--text-muted);">
+                    📍 Delivery to: <strong>{{ o.name }}</strong> ({{ o.city }}, {{ o.state }}) · Mode: <strong>{{ o.get_payment_method_display }}</strong>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <a href="{% url 'order_detail' o.id %}" class="btn btn-outline" style="padding: 7px 16px; font-size: 13px;">
+                        View Tracking Details
+                    </a>
+                    {% if o.items.first and o.items.first.product %}
+                    <form action="{% url 'add_to_cart' o.items.first.product.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="btn btn-accent" style="padding: 7px 16px; font-size: 13px;">
+                            Buy Again
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div style="background: white; border-radius: var(--radius-lg); padding: 70px 20px; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+        <div style="font-size: 60px; margin-bottom: 15px;">📦</div>
+        <h2 style="font-size: 22px; margin-bottom: 8px;">You Haven't Placed Any Orders Yet</h2>
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">
+            Order certified hybrid seeds, biological plant fertilizers, and battery sprayers with free rural doorstep delivery.
+        </p>
+        <a href="{% url 'product_list' %}" class="btn btn-accent" style="padding: 12px 28px;">Start Shopping Now</a>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

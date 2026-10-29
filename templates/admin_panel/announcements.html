@@ -1,0 +1,76 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Store Announcements & Information — FarmKart Admin{% endblock %}
+{% block page_title %}📢 Store Announcements & Kisan Helpline Control{% endblock %}
+
+{% block admin_content %}
+
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <div>
+                <h4 class="admin-card-title">Broadcast Announcement Bar & Emergency Tickers</h4>
+                <span style="font-size: 13px; color: #64748b;">
+                    Updates made here immediately reflect on the top banner of every page across FarmKart.
+                </span>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">
+                    Primary Top Bar Announcement (Kisan Helpline & Free Delivery)
+                </label>
+                <input type="text" name="headline" value="{{ announcement.headline }}" required style="width:100%; padding: 10px 14px; font-size: 13.5px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                <span style="font-size: 11.5px; color: #64748b; margin-top: 4px; display:block;">
+                    Shown on the top left of the entire website header.
+                </span>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">
+                    Secondary Sub-Message (Certification & Government Subsidies)
+                </label>
+                <input type="text" name="subline" value="{{ announcement.subline }}" style="width:100%; padding: 10px 14px; font-size: 13.5px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                <span style="font-size: 11.5px; color: #64748b; margin-top: 4px; display:block;">
+                    Shown on the top right of the announcement bar.
+                </span>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">
+                    Special Promotional / Weather / Subsidy Alert Ticker
+                </label>
+                <input type="text" name="alert_banner" value="{{ announcement.alert_banner }}" placeholder="e.g. 📢 PM Kisan 17th Installment Subsidy Alert! Apply today with certified seeds." style="width:100%; padding: 10px 14px; font-size: 13.5px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                <span style="font-size: 11.5px; color: #64748b; margin-top: 4px; display:block;">
+                    Highlight seasonal alerts, government schemes, or flash discount campaigns.
+                </span>
+            </div>
+
+            <div style="margin-bottom: 25px; padding: 12px 16px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+                <label style="display:flex; align-items:center; gap: 8px; font-size: 13.5px; font-weight:600; cursor:pointer;">
+                    <input type="checkbox" name="is_active" value="1" {% if announcement.is_active %}checked{% endif %}>
+                    ✓ Enable Announcement Bar (Active)
+                </label>
+            </div>
+
+            <!-- Live Preview -->
+            <div style="margin-bottom: 25px; background: #072a16; padding: 12px 16px; border-radius: 6px; color: white; font-size: 12px; display:flex; justify-content:space-between; flex-wrap:wrap; gap: 8px;">
+                <div>
+                    {{ announcement.headline }}
+                </div>
+                <div style="color: #86efac;">
+                    {{ announcement.subline }}
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-accent" style="padding: 12px 24px; font-size: 14px;">
+                💾 Save & Broadcast Announcement
+            </button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,35 @@
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+
+# Environment Variables & Secrets
+.env
+*.env.local
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database & SQLite files
+*.sqlite3
+db.sqlite3
+
+# User Uploaded Media files (keep gitkeep for folder structure)
+media/*
+!media/products/.gitkeep
+!media/store_announcement.json
+
+# IDE / Editor Files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# Logs & Temporary files
+*.log
+scratch/

@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} — Buy Online at Best Price in India | FarmKart{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumbs -->
+<div style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; display:flex; align-items:center; gap:6px;">
+    <a href="{% url 'home' %}">Home</a>
+    <span>›</span>
+    <a href="{% url 'product_list' %}?category={{ product.category.id }}">{{ product.category.name }}</a>
+    <span>›</span>
+    <span style="color: var(--text-main); font-weight:600;">{{ product.name }}</span>
+</div>
+
+<div class="detail-layout">
+    <!-- 1. LEFT COLUMN: Product Image & Buying CTAs -->
+    <div class="detail-left">
+        <div class="detail-main-img">
+            <a href="{% url 'toggle_wishlist' product.id %}?next={{ request.get_full_path }}" 
+               class="wishlist-heart-btn {% if wished %}active{% endif %}" 
+               title="Save to Wishlist">
+                {% if wished %}❤️{% else %}🤍{% endif %}
+            </a>
+
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" id="mainProductImg">
+            {% else %}
+            <div style="font-size: 100px;">🌾</div>
+            {% endif %}
+        </div>
+
+        <div class="detail-cta-row">
+            <form action="{% url 'add_to_cart' product.id %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn-detail-cart btn-block" {% if product.stock <= 0 %}disabled{% endif %}>
+                    🛒 ADD TO CART
+                </button>
+            </form>
+
+            <form action="{% url 'add_to_cart' product.id %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="quantity" value="1">
+                <input type="hidden" name="buy_now" value="1">
+                <button type="submit" class="btn-detail-buy btn-block" {% if product.stock <= 0 %}disabled{% endif %}>
+                    ⚡ BUY NOW
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. RIGHT COLUMN: Product Information & Specifications -->
+    <div class="detail-right">
+        <span style="font-size: 13px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">
+            Brand: <strong>{{ product.brand|default:"FarmKart Agro" }}</strong> · {{ product.category.name }}
+        </span>
+
+        <h1 class="detail-title">{{ product.name }}</h1>
+        {% if product.hindi_name %}
+        <div class="detail-hindi">🌾 {{ product.hindi_name }}</div>
+        {% endif %}
+
+        <!-- Rating & Reviews Counter -->
+        <div class="detail-rating-row">
+            <span class="rating-badge" style="font-size: 14px; padding: 4px 10px;">
+                {{ product.rating }} ★
+            </span>
+            <span style="font-size: 14px; color: var(--text-muted); font-weight: 600;">
+                {{ product.review_count|default:"14" }} Ratings & Verified Kisan Reviews
+            </span>
+            {% if product.is_organic %}
+            <span class="badge-organic" style="font-size: 12px; padding: 3px 10px;">100% Certified Organic</span>
+            {% endif %}
+        </div>
+
+        <!-- Flipkart-Style Price Card -->
+        <div class="price-card">
+            <div style="font-size: 13px; font-weight: 700; color: #15803d; margin-bottom: 4px;">Special Farmer Price</div>
+            <div style="display: flex; align-items: baseline; flex-wrap: wrap;">
+                <span class="current-price">₹{{ product.sale_price }}</span>
+                {% if product.discount > 0 %}
+                <span class="strike-price">₹{{ product.price }}</span>
+                <span class="savings-pill">{{ product.discount|floatformat:0 }}% OFF</span>
+                <span style="font-size: 13px; color: #166534; font-weight: 700; margin-left: 12px;">
+                    You save ₹{{ product.save_amount }}
+                </span>
+                {% endif %}
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
+                Inclusive of all taxes · Packaging Unit: <strong>{{ product.unit }}</strong>
+            </div>
+        </div>
+
+        <!-- Available Offers -->
+        <div style="margin-bottom: 22px;">
+            <h4 style="font-size: 14px; margin-bottom: 10px; color: #334155;">Available Kisan Offers</h4>
+            <div style="display:flex; flex-direction:column; gap:6px; font-size:13px; color:#475569;">
+                <div>🏷️ <strong>Bank Offer:</strong> Extra 5% cashback with Kisan Credit Cards (KCC).</div>
+                <div>🏷️ <strong>Delivery Offer:</strong> Free doorstep delivery on orders above ₹999.</div>
+                <div>🏷️ <strong>Farmer Guarantee:</strong> 100% Genuine product directly sourced from certified manufacturers.</div>
+            </div>
+        </div>
+
+        <!-- Pincode Check Simulator -->
+        <div class="pincode-box">
+            <span style="font-size: 14px; font-weight: 700;">📍 Delivery:</span>
+            <input type="text" id="pincodeInput" placeholder="Enter Pincode" maxlength="6" value="411001">
+            <button type="button" id="checkPincodeBtn">Check</button>
+            <div id="pincodeResult" style="flex-basis: 100%;"></div>
+        </div>
+
+        <!-- Stock Status -->
+        <div style="margin-bottom: 20px;">
+            {% if product.stock > 10 %}
+            <span style="color: #16a34a; font-weight: 700; font-size: 14px;">✓ In Stock — Dispatches within 24 Hours</span>
+            {% elif product.stock > 0 %}
+            <span style="color: #ea580c; font-weight: 700; font-size: 14px;">⚡ Hurry! Only {{ product.stock }} units remaining in stock</span>
+            {% else %}
+            <span style="color: #dc2626; font-weight: 700; font-size: 14px;">✕ Currently Out of Stock</span>
+            {% endif %}
+        </div>
+
+        <!-- FARMER DOSAGE & SPECS BOX (Special Agricultural Feature) -->
+        <div class="farmer-guide-card">
+            <h4>🌾 Farmer Application & Crop Guide (फसल एवं प्रयोग विवरण)</h4>
+            <div class="guide-grid">
+                {% if product.crop_type %}
+                <div class="guide-item">
+                    <div class="guide-label">Suitable Crops (अनुशंसित फसलें)</div>
+                    <div class="guide-val">{{ product.crop_type }}</div>
+                </div>
+                {% endif %}
+
+                {% if product.dosage %}
+                <div class="guide-item">
+                    <div class="guide-label">Recommended Dosage (मात्रा)</div>
+                    <div class="guide-val">{{ product.dosage }}</div>
+                </div>
+                {% endif %}
+
+                {% if product.application_method %}
+                <div class="guide-item">
+                    <div class="guide-label">Method (प्रयोग विधि)</div>
+                    <div class="guide-val">{{ product.application_method }}</div>
+                </div>
+                {% endif %}
+
+                <div class="guide-item">
+                    <div class="guide-label">Pack Size (पैकिंग आकार)</div>
+                    <div class="guide-val">{{ product.unit }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div style="margin-bottom: 30px;">
+            <h3 style="font-size: 18px; margin-bottom: 10px;">Product Overview</h3>
+            <div style="font-size: 14px; color: #334155; line-height: 1.7; white-space: pre-line;">
+                {{ product.description }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Reviews Section -->
+<section style="background: white; border-radius: var(--radius-lg); padding: 30px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 40px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h2 style="font-size: 22px;">Ratings & Farmer Reviews</h2>
+            <p style="font-size: 13px; color: var(--text-muted);">Verified feedback from fellow agricultural producers</p>
+        </div>
+
+        {% if user.is_authenticated %}
+        <button class="btn btn-outline" onclick="document.getElementById('reviewFormBox').scrollIntoView({behavior: 'smooth'})">
+            ✍️ Write a Review
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Reviews Listing -->
+    <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 35px;">
+        {% for r in reviews %}
+        <div style="border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <span class="rating-badge">{{ r.rating }} ★</span>
+                <strong style="font-size: 14px;">{{ r.user.first_name|default:r.user.username }}</strong>
+                {% if r.is_verified_farmer %}
+                <span style="font-size: 11px; background: #dcfce7; color: #166534; font-weight: 700; padding: 2px 6px; border-radius: 4px;">
+                    ✓ Verified Kisan Buyer
+                </span>
+                {% endif %}
+                <span style="font-size: 12px; color: var(--text-light); margin-left: auto;">
+                    {{ r.created_at|date:"M d, Y" }}
+                </span>
+            </div>
+
+            {% if r.crop_used_on %}
+            <div style="font-size: 12px; color: var(--primary); font-weight: 600; margin-bottom: 6px;">
+                🌾 Used on: {{ r.crop_used_on }}
+            </div>
+            {% endif %}
+
+            <p style="font-size: 14px; color: #334155; line-height: 1.5;">
+                {{ r.comment }}
+            </p>
+        </div>
+        {% empty %}
+        <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+            <p>No reviews yet for this product. Be the first farmer to share your experience!</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Post Review Form -->
+    {% if user.is_authenticated %}
+    <div id="reviewFormBox" style="background: #f8fafc; border-radius: var(--radius-md); padding: 24px; border: 1px solid var(--border);">
+        <h3 style="font-size: 16px; margin-bottom: 15px;">Rate & Review this Agricultural Product</h3>
+        <form method="post" action="{% url 'add_review' product.id %}">
+            {% csrf_token %}
+            <div style="display: grid; grid-template-columns: 140px 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Rating (तारे)</label>
+                    <select name="rating" style="width:100%; padding:9px; border:1px solid var(--border); border-radius:4px;">
+                        <option value="5">★★★★★ (5 - Excellent)</option>
+                        <option value="4">★★★★☆ (4 - Good)</option>
+                        <option value="3">★★★☆☆ (3 - Average)</option>
+                        <option value="2">★★☆☆☆ (2 - Poor)</option>
+                        <option value="1">★☆☆☆☆ (1 - Terrible)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Crop used on (फसल का नाम)</label>
+                    <input type="text" name="crop_used_on" placeholder="e.g. Wheat, Cotton, Tomato, Paddy" style="width:100%; padding:9px; border:1px solid var(--border); border-radius:4px;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Your Honest Review / Experience (अपना अनुभव लिखें)</label>
+                <textarea name="comment" rows="3" placeholder="Describe the result, germination rate, pest knockdown, or sprayer performance..." required style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:inherit; font-size:14px;"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-accent">Submit Review</button>
+        </form>
+    </div>
+    {% else %}
+    <div style="background: #f8fafc; border-radius: var(--radius-md); padding: 20px; text-align: center; border: 1px solid var(--border);">
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 10px;">Have you purchased or used this product?</p>
+        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline" style="font-size: 13px;">Login to Write a Review</a>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Related Agricultural Products -->
+{% if related_products %}
+<section style="margin-bottom: 30px;">
+    <div class="section-header">
+        <h2 class="section-title">Similar Products in {{ product.category.name }}</h2>
+    </div>
+    <div class="product-grid">
+        {% for rp in related_products %}
+        <div class="product-card">
+            <a href="{% url 'product_detail' rp.id %}" class="product-img-box">
+                {% if rp.image %}
+                <img src="{{ rp.image.url }}" alt="{{ rp.name }}">
+                {% else %}
+                <div style="font-size: 50px;">🌱</div>
+                {% endif %}
+            </a>
+            <div class="product-info">
+                <span class="product-brand">{{ rp.brand }}</span>
+                <a href="{% url 'product_detail' rp.id %}">
+                    <h4 class="product-title">{{ rp.name }}</h4>
+                </a>
+                <div class="pricing-box">
+                    <span class="sale-price">₹{{ rp.sale_price }}</span>
+                    {% if rp.discount > 0 %}
+                    <span class="mrp-price">₹{{ rp.price }}</span>
+                    {% endif %}
+                </div>
+                <div style="margin-top: 12px;">
+                    <a href="{% url 'product_detail' rp.id %}" class="btn-card-cart btn-block" style="display:block; text-align:center;">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}

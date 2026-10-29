@@ -1,0 +1,306 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Tax Invoice — {{ order.order_number }} | FarmKart</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            padding: 30px 15px;
+            color: #1e293b;
+        }
+
+        .invoice-card {
+            max-width: 820px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            padding: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #16a34a;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+
+        .brand-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: #0d532b;
+            margin: 0 0 4px;
+        }
+
+        .brand-title span {
+            color: #ea580c;
+        }
+
+        .invoice-meta {
+            text-align: right;
+            font-size: 13px;
+        }
+
+        .invoice-meta h2 {
+            font-size: 18px;
+            color: #0f172a;
+            margin: 0 0 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .info-box-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-bottom: 25px;
+        }
+
+        .invoice-table th {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 10px 12px;
+            border-top: 1px solid #cbd5e1;
+            border-bottom: 1px solid #cbd5e1;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        .invoice-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .total-box {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 30px;
+        }
+
+        .total-table {
+            width: 320px;
+            font-size: 13.5px;
+        }
+
+        .total-table tr td:last-child {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .total-table tr.grand-total td {
+            font-size: 16px;
+            font-weight: 800;
+            color: #0d532b;
+            border-top: 2px solid #0f172a;
+            padding-top: 8px;
+        }
+
+        .invoice-footer {
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .print-toolbar {
+            max-width: 820px;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-print {
+            background: #16a34a;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 13.5px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-print:hover {
+            background: #15803d;
+        }
+
+        .btn-back {
+            color: #475569;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .invoice-card {
+                border: none;
+                box-shadow: none;
+                padding: 0;
+            }
+            .print-toolbar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="print-toolbar">
+        <a href="{% url 'order_detail' order.id %}" class="btn-back">← Back to Order</a>
+        <button class="btn-print" onclick="window.print()">🖨️ Print Tax Invoice / Save PDF</button>
+    </div>
+
+    <div class="invoice-card">
+        <!-- Header -->
+        <div class="invoice-header">
+            <div>
+                <h1 class="brand-title">🌾 Farm<span>Kart</span></h1>
+                <div style="font-size: 12px; color: #64748b; line-height: 1.5;">
+                    Kisan Ki Apni Dukan · Bharat Agri-Inputs E-Commerce<br>
+                    Reg. Office: Agri-Logistics Hub, Pune, Maharashtra - 411001<br>
+                    GSTIN: <strong>27AABCF1234F1Z8</strong> · Kisan Toll-Free: 1800-180-1551
+                </div>
+            </div>
+
+            <div class="invoice-meta">
+                <h2>TAX INVOICE</h2>
+                <div>Invoice #: <strong>{{ order.order_number }}</strong></div>
+                <div>Date: <strong>{{ order.created_at|date:"d M Y" }}</strong></div>
+                <div>Payment Mode: <strong>{{ order.payment_method }}</strong></div>
+                <div>Payment Status: <strong>{{ order.payment_status }}</strong></div>
+            </div>
+        </div>
+
+        <!-- Billing & Shipping Information -->
+        <div class="info-grid">
+            <div class="info-box">
+                <div class="info-box-title">Billed & Delivered To (किसान विवरण):</div>
+                <strong style="font-size: 14px; color: #0f172a;">{{ order.name }}</strong><br>
+                {{ order.address }}<br>
+                {{ order.city }}, {{ order.state }} - <strong>{{ order.pincode }}</strong><br>
+                📞 Phone: {{ order.phone }}
+                {% if order.landmark %}<br>Landmark: {{ order.landmark }}{% endif %}
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-title">Order Logistics & Fulfillment Details:</div>
+                <div>Status: <strong>{{ order.get_status_display }}</strong></div>
+                <div>Tracking #: <strong>{{ order.tracking_number|default:"Dispatched via India Rural Post / Agri-Express" }}</strong></div>
+                <div>Expected Delivery: <strong>{{ order.expected_delivery }}</strong></div>
+                <div>Customer Username: <strong>{{ order.user.username }}</strong></div>
+            </div>
+        </div>
+
+        <!-- Table of Products -->
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;">#</th>
+                    <th>Product Description</th>
+                    <th>Brand & Pack</th>
+                    <th style="text-align:center;">Qty</th>
+                    <th style="text-align:right;">Rate (₹)</th>
+                    <th style="text-align:right;">Amount (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        <strong style="color: #0f172a;">{{ item.product.name|default:"Agricultural Item" }}</strong>
+                        {% if item.product.hindi_name %}
+                        <div style="font-size: 11px; color: #166534;">{{ item.product.hindi_name }}</div>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.product.brand|default:"FarmKart" }} ({{ item.product.unit }})</td>
+                    <td style="text-align:center;">{{ item.quantity }}</td>
+                    <td style="text-align:right;">₹{{ item.price }}</td>
+                    <td style="text-align:right; font-weight:700;">₹{{ item.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Total Calculation -->
+        <div class="total-box">
+            <table class="total-table">
+                <tr>
+                    <td>Item Subtotal:</td>
+                    <td>₹{{ order.total }}</td>
+                </tr>
+                <tr>
+                    <td>Doorstep Delivery:</td>
+                    <td style="color: #16a34a;">FREE (₹0.00)</td>
+                </tr>
+                <tr>
+                    <td>Applicable GST (Seeds & Fertilizers):</td>
+                    <td>Included (0% - 5%)</td>
+                </tr>
+                <tr class="grand-total">
+                    <td>Grand Total Amount:</td>
+                    <td>₹{{ order.total }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Footer Seal -->
+        <div class="invoice-footer">
+            <div>
+                🌾 <em>Thank you for trusting FarmKart. Wishing you a bountiful harvest!</em><br>
+                For questions regarding this invoice, call toll-free 1800-180-1551.
+            </div>
+
+            <div style="text-align:right;">
+                <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px;">Authorized Seal</div>
+                <strong style="color: #0d532b; font-size: 13px;">FarmKart Agro Ltd.</strong>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

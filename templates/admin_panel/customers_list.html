@@ -1,0 +1,93 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Registered Farmers & Users — FarmKart Admin{% endblock %}
+{% block page_title %}👨‍🌾 Registered Farmers & Customer Directory{% endblock %}
+
+{% block admin_content %}
+
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div>
+            <h4 class="admin-card-title">Registered Farmer Accounts ({{ total_count }})</h4>
+            <span style="font-size: 13px; color: #64748b;">Review member accounts, order history, lifetime value, and contact profiles.</span>
+        </div>
+    </div>
+
+    <!-- Search Form -->
+    <form method="get" action="{% url 'admin_customers_list' %}" style="display:flex; gap:12px; margin-bottom: 20px; align-items:center; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0;">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search by username, farmer name, or email..." style="flex-grow:1; padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px;">
+        <button type="submit" class="btn btn-sm btn-primary" style="padding: 8px 16px;">Search</button>
+        {% if q %}<a href="{% url 'admin_customers_list' %}" style="font-size: 13px; color: #64748b; text-decoration:none;">Clear</a>{% endif %}
+    </form>
+
+    <!-- Customers Table -->
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Farmer / Customer</th>
+                    <th>Email Address</th>
+                    <th>Role</th>
+                    <th>Registered Date</th>
+                    <th>Total Orders</th>
+                    <th>Lifetime Spend (₹)</th>
+                    <th>Recent Activity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in customers %}
+                <tr>
+                    <td>
+                        <strong style="color: #0f172a; font-size: 14px;">{{ c.user.first_name|default:c.user.username }}</strong>
+                        <div style="font-size: 11.5px; color: #64748b;">
+                            @{{ c.user.username }}
+                            {% if c.user.profile.phone %} · 📞 {{ c.user.profile.phone }}{% endif %}
+                        </div>
+                        {% if c.user.profile.primary_crop %}
+                        <div style="font-size: 11px; color: #166534; font-weight: 500;">
+                            🌾 Crop: {{ c.user.profile.primary_crop }} ({{ c.user.profile.state }})
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>{{ c.user.email|default:"Not specified" }}</td>
+                    <td>
+                        {% if c.user.is_superuser %}
+                        <span class="pill-badge pill-danger">Super Admin</span>
+                        {% elif c.user.is_staff %}
+                        <span class="pill-badge pill-warning">Staff</span>
+                        {% else %}
+                        <span class="pill-badge pill-success">🌾 Farmer Member</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size: 12px; color: #64748b;">
+                        {{ c.user.date_joined|date:"M d, Y" }}
+                    </td>
+                    <td>
+                        <span class="pill-badge pill-info">{{ c.orders_count }} Orders</span>
+                    </td>
+                    <td>
+                        <strong style="color: #166534; font-size: 14px;">₹{{ c.total_spend|floatformat:2 }}</strong>
+                    </td>
+                    <td>
+                        {% if c.latest_order %}
+                        <a href="{% url 'admin_order_detail' c.latest_order.id %}" style="font-size: 12px; color: var(--primary); text-decoration:none; font-weight:600;">
+                            #{{ c.latest_order.order_number }} ({{ c.latest_order.created_at|date:"M d" }})
+                        </a>
+                        {% else %}
+                        <span style="font-size: 12px; color: #94a3b8;">No orders yet</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align:center; padding: 40px; color: #64748b;">
+                        No customer accounts found matching your query.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

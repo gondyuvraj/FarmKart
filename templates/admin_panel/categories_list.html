@@ -1,0 +1,96 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Manage Categories — FarmKart Admin{% endblock %}
+{% block page_title %}🏷️ Agricultural Categories & Crop Sectors{% endblock %}
+
+{% block admin_content %}
+
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
+    <!-- LEFT: Add New Category Form -->
+    <div>
+        <div class="admin-card">
+            <h4 class="admin-card-title" style="margin-bottom: 15px;">➕ Add New Category</h4>
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+
+                <div style="margin-bottom: 14px;">
+                    <label style="font-weight:600; font-size:13px; display:block; margin-bottom:4px;">Category Name (English) *</label>
+                    <input type="text" name="name" required placeholder="e.g. Bio-Fertilizers" style="width:100%; padding: 8px 12px; font-size:13px; border:1px solid #cbd5e1; border-radius:6px;">
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <label style="font-weight:600; font-size:13px; display:block; margin-bottom:4px;">Hindi Name (हिन्दी नाम)</label>
+                    <input type="text" name="hindi_name" placeholder="उदा. जैव उर्वरक" style="width:100%; padding: 8px 12px; font-size:13px; border:1px solid #cbd5e1; border-radius:6px;">
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <label style="font-weight:600; font-size:13px; display:block; margin-bottom:4px;">Category Icon (Emoji)</label>
+                    <input type="text" name="icon" value="🌱" style="width:100%; padding: 8px 12px; font-size:16px; border:1px solid #cbd5e1; border-radius:6px;">
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <label style="font-weight:600; font-size:13px; display:block; margin-bottom:4px;">Description</label>
+                    <textarea name="description" rows="3" placeholder="Category purpose and suitable agricultural usage..." style="width:100%; padding: 8px 12px; font-size:13px; border:1px solid #cbd5e1; border-radius:6px; font-family:inherit;"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-accent btn-block" style="padding: 10px; font-size: 13.5px;">
+                    Create Category
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- RIGHT: Existing Categories Table -->
+    <div>
+        <div class="admin-card">
+            <h4 class="admin-card-title" style="margin-bottom: 15px;">Existing Categories</h4>
+
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">Icon</th>
+                            <th>Category Name</th>
+                            <th>Hindi Name</th>
+                            <th>Product Count</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in categories %}
+                        <tr>
+                            <td style="font-size: 22px; text-align:center;">{{ item.cat.icon }}</td>
+                            <td>
+                                <strong>{{ item.cat.name }}</strong>
+                                {% if item.cat.description %}
+                                <div style="font-size: 11.5px; color: #64748b;">{{ item.cat.description|truncatewords:8 }}</div>
+                                {% endif %}
+                            </td>
+                            <td style="color: #0d532b; font-weight: 500;">{{ item.cat.hindi_name|default:"—" }}</td>
+                            <td>
+                                <a href="{% url 'admin_products_list' %}?category={{ item.cat.id }}" class="pill-badge pill-info" style="text-decoration:none;">
+                                    {{ item.product_count }} Products ➔
+                                </a>
+                            </td>
+                            <td style="text-align:right;">
+                                <form method="post" onsubmit="return confirm('Delete category {{ item.cat.name }}?');" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="category_id" value="{{ item.cat.id }}">
+                                    <button type="submit" class="btn-sm-action btn-delete" title="Delete Category">
+                                        🗑️ Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

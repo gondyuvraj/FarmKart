@@ -1,0 +1,153 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Manage Products — FarmKart Admin{% endblock %}
+{% block page_title %}📦 Product Inventory & Catalog Management{% endblock %}
+
+{% block admin_content %}
+
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div>
+            <h4 class="admin-card-title">All Agricultural Products ({{ total_count }})</h4>
+            <span style="font-size: 13px; color: #64748b;">Control prices, stock quantities, specifications, and visibility.</span>
+        </div>
+
+        <a href="{% url 'admin_product_add' %}" class="btn btn-accent" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+            <span>➕</span> Add New Product
+        </a>
+    </div>
+
+    <!-- Filters & Search Form -->
+    <form method="get" action="{% url 'admin_products_list' %}" style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom: 20px; align-items:center; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0;">
+        <div style="flex-grow: 1; min-width: 220px;">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search by product name, brand, crop..." style="width:100%; padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px;">
+        </div>
+
+        <div>
+            <select name="category" style="padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; background:white;">
+                <option value="">All Categories</option>
+                {% for c in categories %}
+                <option value="{{ c.id }}" {% if cat_id == c.id|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <select name="stock" style="padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; background:white;">
+                <option value="">All Stock Levels</option>
+                <option value="in" {% if stock_status == 'in' %}selected{% endif %}>In Stock (> 10)</option>
+                <option value="low" {% if stock_status == 'low' %}selected{% endif %}>Low Stock (1 - 10)</option>
+                <option value="out" {% if stock_status == 'out' %}selected{% endif %}>Out of Stock (0)</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-sm btn-primary" style="padding: 8px 16px;">
+            Filter
+        </button>
+
+        {% if q or cat_id or stock_status %}
+        <a href="{% url 'admin_products_list' %}" style="font-size: 13px; color: #64748b; text-decoration:none;">Reset</a>
+        {% endif %}
+    </form>
+
+    <!-- Products Table -->
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">Image</th>
+                    <th>Product & Brand</th>
+                    <th>Category</th>
+                    <th>Price / Discount</th>
+                    <th>Inventory Stock</th>
+                    <th>Attributes</th>
+                    <th style="width: 140px; text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in products %}
+                <tr>
+                    <td>
+                        <div style="width: 48px; height: 48px; border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                            {% if p.image %}
+                            <img src="{{ p.image.url }}" alt="{{ p.name }}" style="width:100%; height:100%; object-fit:contain;">
+                            {% else %}
+                            <span style="font-size: 20px;">🌱</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <a href="{% url 'product_detail' p.id %}" target="_blank" style="font-weight: 700; color: #0f172a; text-decoration:none; display:block;" title="Preview in storefront">
+                            {{ p.name }} ↗
+                        </a>
+                        {% if p.hindi_name %}
+                        <div style="font-size: 11.5px; color: #0d532b; font-weight: 500;">{{ p.hindi_name }}</div>
+                        {% endif %}
+                        <div style="font-size: 11.5px; color: #64748b;">
+                            Brand: <strong>{{ p.brand|default:"FarmKart" }}</strong> · Unit: {{ p.unit }}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="pill-badge pill-neutral">{{ p.category.name }}</span>
+                    </td>
+                    <td>
+                        <div>
+                            <strong style="font-size: 14px; color: #166534;">₹{{ p.sale_price }}</strong>
+                            {% if p.discount > 0 %}
+                            <span style="font-size: 11px; text-decoration:line-through; color:#94a3b8; margin-left:4px;">₹{{ p.price }}</span>
+                            <span style="font-size: 11px; color: #b91c1c; font-weight:700;">({{ p.discount|floatformat:0 }}% off)</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <form action="{% url 'admin_product_quick_stock' p.id %}" method="post" style="display:flex; align-items:center; gap:6px;">
+                            {% csrf_token %}
+                            <span class="pill-badge {% if p.stock == 0 %}pill-danger{% elif p.stock <= 10 %}pill-warning{% else %}pill-success{% endif %}" style="min-width: 60px; text-align:center;">
+                                {{ p.stock }} units
+                            </span>
+                            <input type="number" name="stock" value="{{ p.stock }}" min="0" style="width: 55px; padding: 4px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px;" title="Adjust stock">
+                            <input type="hidden" name="price" value="{{ p.price }}">
+                            <input type="hidden" name="discount" value="{{ p.discount }}">
+                            <button type="submit" class="btn-sm-action btn-edit" title="Save Stock">✓</button>
+                        </form>
+                    </td>
+                    <td>
+                        <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                            {% if p.is_organic %}
+                            <span class="pill-badge pill-success" style="font-size: 10px;">Organic</span>
+                            {% endif %}
+                            {% if p.is_featured %}
+                            <span class="pill-badge pill-info" style="font-size: 10px;">Featured</span>
+                            {% endif %}
+                            {% if p.is_best_seller %}
+                            <span class="pill-badge pill-warning" style="font-size: 10px;">Best Seller</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td style="text-align: right;">
+                        <div style="display:inline-flex; gap:6px;">
+                            <a href="{% url 'admin_product_edit' p.id %}" class="btn-sm-action btn-edit">
+                                ✏️ Edit
+                            </a>
+                            <form action="{% url 'admin_product_delete' p.id %}" method="post" onsubmit="return confirm('Are you sure you want to delete this product?');" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-sm-action btn-delete">
+                                    🗑️
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align:center; padding: 40px; color: #64748b;">
+                        No products found matching the criteria.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
